@@ -23,6 +23,47 @@ def plot_spectrogram(audio_path):
     plt.show()
 
 
+def plot_spectrum(audio_path, _type='default', max_freq=2000):
+    """
+    Plot the spectrum of an audio file.
+
+    Parameters:
+    - audio_path: Path to the audio file.
+    """
+    # Load the audio file
+    y, sr = librosa.load(audio_path)
+
+    if _type == 'default':
+        # Compute the spectrum
+        spectrum = np.abs(librosa.stft(y))
+
+        # Plot the spectrum
+        plt.figure(figsize=(10, 6))
+        librosa.display.specshow(librosa.amplitude_to_db(spectrum, ref=np.max), sr=sr, x_axis='time', y_axis='log')
+        plt.colorbar(format='%+2.0f dB')
+        plt.title('Spectrum')
+        plt.xlabel('Time (s)')
+        plt.ylabel('Frequency (Hz)')
+        plt.show()
+
+    if _type == 'line':
+        # Compute the Fourier Transform of the audio signal
+        Y = np.fft.fft(y)
+
+        # Calculate the frequency bins
+        freqs = np.fft.fftfreq(len(Y), 1 / sr)
+
+        # Plot the spectrum using a line plot
+        plt.figure(figsize=(10, 6))
+        plt.plot(freqs[:len(Y) // 2], np.abs(Y)[:len(Y) // 2])  # Plot only positive frequencies
+        plt.title('Spectrum Plot (Amplitude vs Frequency)')
+        plt.xlabel('Frequency (Hz)')
+        plt.ylabel('Amplitude')
+        plt.xlim(0, max_freq)
+        plt.grid()
+        plt.show()
+
+
 def plot_2_spectrogram(audio_path1, audio_path2):
     # Load the audio files
     y1, sr1 = librosa.load(audio_path1, sr=None)
