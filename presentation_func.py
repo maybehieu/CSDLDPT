@@ -3,6 +3,7 @@ import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import read_audio_from_path
+from calculation_func import *
 
 
 def plot_spectrogram(audio_path):
@@ -100,4 +101,80 @@ def plot_2_spectrogram(audio_path1, audio_path2):
     plt.ylabel('Frequency (Hz)')
 
     plt.tight_layout()
+    plt.show()
+
+
+def plot_spectral_centroid(audio_path, spectral_centroid):
+    """
+    Plot the spectral centroid of an audio file.
+
+    Parameters:
+    - audio_path: Path to the audio file.
+    - spectral_centroid: Spectral centroid of the audio file.
+    """
+    # Load the audio file
+    y, sr = librosa.load(audio_path)
+
+    # Compute the time array
+    times = librosa.times_like(spectral_centroid)
+
+    # Plot the spectral centroid
+    plt.figure(figsize=(10, 6))
+    librosa.display.waveshow(y, sr=sr, alpha=0.5)
+    plt.plot(times, spectral_centroid[0], color='r')
+    plt.title('Spectral Centroid')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Frequency (Hz)')
+    plt.show()
+
+
+def plot_attack_time(audio_path):
+    """
+    Visualize the attack time of an audio file.
+
+    Parameters:
+    - audio_path: Path to the audio file.
+    """
+    # Load the audio file
+    y, sr = librosa.load(audio_path)
+
+    # Calculate the attack time
+    attack_time = calculate_attack_time(y, sr)
+
+    # Create time array
+    times = librosa.times_like(attack_time)
+
+    # Plot the waveform and attack time
+    plt.figure(figsize=(10, 6))
+    librosa.display.waveshow(y, sr=sr, alpha=0.5)
+    plt.plot(times, attack_time, color='r')
+    plt.title('Attack Time')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Attack Time')
+    plt.show()
+
+
+def plot_spectral_bandwidth(audio_path):
+    """
+    Visualize the spectral bandwidth of an audio file.
+
+    Parameters:
+    - audio_path: Path to the audio file.
+    """
+    # Load the audio file
+    y, sr = librosa.load(audio_path)
+
+    # Calculate the spectral bandwidth
+    spectral_bandwidth = calculate_spectral_bandwidth(y, sr)
+
+    # Create time array
+    times = librosa.times_like(spectral_bandwidth)
+
+    # Plot the waveform and spectral bandwidth
+    plt.figure(figsize=(10, 6))
+    librosa.display.waveshow(y, sr=sr, alpha=0.5)
+    plt.plot(times, spectral_bandwidth[0], color='r')
+    plt.title('Spectral Bandwidth')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Spectral Bandwidth')
     plt.show()

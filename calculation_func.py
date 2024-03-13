@@ -103,12 +103,12 @@ def calculate_average_frequency(y, sr):
     # Calculate the frequency vector
     frequency_vector = librosa.fft_frequencies(sr=sr)
     # Calculate the weighted sum of frequencies
-    weighted_sum = np.sum(magnitude_spectrum * frequency_vector)
+    weighted_sum = np.sum(magnitude_spectrum * frequency_vector[:, np.newaxis], axis=0)
     # Calculate the total energy
     total_energy = np.sum(magnitude_spectrum)
     # Calculate the average frequency
     average_frequency = weighted_sum / total_energy
-    return average_frequency
+    return np.mean(average_frequency), average_frequency
 
 
 def compare_spectrogram(a = (), b = ()):
@@ -143,3 +143,42 @@ def compare_spectrum(a = (), b = ()):
     spectrum2 = np.abs(librosa.stft(y2)).flatten()
 
     return cosine_similarity_sklearn(spectrum1.reshape(-1, 1), spectrum2.reshape(-1, 1))[0, 0]
+
+
+def calculate_spectral_centroid(audio_path):
+    """
+    Calculate the spectral centroid of an audio file.
+
+    Parameters:
+    - audio_path: Path to the audio file.
+
+    Returns:
+    - spectral_centroid: Spectral centroid of the audio file.
+    """
+    # Load the audio file
+    y, sr = librosa.load(audio_path)
+
+    # Compute the short-time Fourier transform (STFT) of the audio signal
+    D = librosa.stft(y)
+
+    # Calculate the spectral centroid
+    spectral_centroid = librosa.feature.spectral_centroid(S=np.abs(D), sr=sr)
+
+    return spectral_centroid
+
+
+def calculate_attack_time(y, sr):
+    # Compute the onset envelope
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+
+    # Find the time of the first peak in the onset envelope
+    attack_time = librosa.frames_to_time(librosa.util.peak_pick(onset_env), sr=sr)
+
+    return attack_time
+
+
+def calculate_spectral_bandwidth(y, sr):
+    # Compute the spectral bandwidth
+    spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+
+    return spectral_bandwidth

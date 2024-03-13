@@ -26,8 +26,8 @@
 # plt.show()
 
 from utils import read_audio_from_path
-from calculation_func import compare_spectrogram, compare_spectrum
-from presentation_func import plot_spectrogram, plot_2_spectrogram, plot_spectrum
+from calculation_func import *
+from presentation_func import *
 
 
 if __name__ == "__main__":
@@ -41,4 +41,12 @@ if __name__ == "__main__":
     #                    'datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')
     # plot_spectrum('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav', _type='line')
     # plot_spectrum('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav', _type='line')
-    plot_spectrum('datasets/Hand/Claves/clave1.ff.stereo.aif', _type='line', max_freq=15000)
+    # plot_spectrum('datasets/Hand/Claves/clave1.ff.stereo.aif', _type='line', max_freq=15000)
+
+    # plot_spectral_centroid('datasets/Hand/Claves/clave1.ff.stereo.aif',
+    #                        calculate_spectral_centroid('datasets/Hand/Claves/clave1.ff.stereo.aif'))
+    # plot_spectral_centroid('datasets/Hand/Castanets/castanet2.ff.stereo.aif',
+    #                        calculate_spectral_centroid('datasets/Hand/Castanets/castanet2.ff.stereo.aif'))
+    # print(calculate_average_power(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
+    # print(calculate_average_frequency(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
+    plot_attack_time('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
