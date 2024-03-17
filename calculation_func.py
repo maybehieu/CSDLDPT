@@ -2,6 +2,7 @@ import librosa
 import numpy as np
 import sklearn.metrics.pairwise
 
+
 from utils import read_audio_from_path
 
 
@@ -177,8 +178,53 @@ def calculate_attack_time(y, sr):
     return attack_time
 
 
-def calculate_spectral_bandwidth(y, sr):
-    # Compute the spectral bandwidth
-    spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+# def calculate_spectral_bandwidth(y, sr):
+#     # Compute the spectral bandwidth
+#     spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+#
+#     return spectral_bandwidth
 
+
+def calculate_average_pitch(y, sr):
+    pitches, magnitudes = librosa.core.piptrack(y=y, sr=sr, fmin=75, fmax=1600)
+
+    max_indexes = np.argmax(magnitudes, axis=0)
+    most_significant_pitches = pitches[max_indexes, range(magnitudes.shape[1])]
+    return most_significant_pitches
+
+
+def calculate_mfcc(y, sr):
+    # this function doesn't help in this use case, mostly for speechs
+    mfccs = librosa.feature.mfcc(y=y, sr=sr)
+    avg = np.mean(mfccs, axis=1)
+    print(avg, len(avg))
+    return avg
+
+
+def calculate_chroma_stft(y, sr):
+    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+    return chroma
+
+
+def calculate_spectral_bandwidth(y, sr):
+    S = np.abs(librosa.stft(y))
+    spectral_bandwidth = librosa.feature.spectral_bandwidth(S=S, sr=sr)
     return spectral_bandwidth
+
+
+def calculate_spectral_contrast(y, sr):
+    S = np.abs(librosa.stft(y))
+    spectral_contrast = librosa.feature.spectral_contrast(S=S)
+    return spectral_contrast
+
+
+def calculate_spectral_flatness(y, sr):
+    S = np.abs(librosa.stft(y))
+    spectral_flatness = librosa.feature.spectral_flatness(S=S)
+    return spectral_flatness
+
+
+def calculate_spectral_rolloff(y, sr):
+    S = np.abs(librosa.stft(y))
+    spectral_rolloff = librosa.feature.spectral_rolloff(S=S)
+    return spectral_rolloff

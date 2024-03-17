@@ -8,7 +8,8 @@ from calculation_func import *
 
 def plot_spectrogram(audio_path):
     # Load the audio file
-    y, sr = librosa.load(audio_path, sr=None)
+    # y, sr = librosa.load(audio_path, sr=None)
+    y, sr = read_audio_from_path(audio_path)
 
     # Compute the spectrogram
     D = librosa.stft(y)
@@ -32,7 +33,8 @@ def plot_spectrum(audio_path, _type='default', max_freq=2000):
     - audio_path: Path to the audio file.
     """
     # Load the audio file
-    y, sr = librosa.load(audio_path)
+    # y, sr = librosa.load(audio_path)
+    y, sr = read_audio_from_path(audio_path)
 
     if _type == 'default':
         # Compute the spectrum
@@ -113,7 +115,8 @@ def plot_spectral_centroid(audio_path, spectral_centroid):
     - spectral_centroid: Spectral centroid of the audio file.
     """
     # Load the audio file
-    y, sr = librosa.load(audio_path)
+    # y, sr = librosa.load(audio_path)
+    y, sr = read_audio_from_path(audio_path)
 
     # Compute the time array
     times = librosa.times_like(spectral_centroid)
@@ -136,7 +139,8 @@ def plot_attack_time(audio_path):
     - audio_path: Path to the audio file.
     """
     # Load the audio file
-    y, sr = librosa.load(audio_path)
+    # y, sr = librosa.load(audio_path)
+    y, sr = read_audio_from_path(audio_path)
 
     # Calculate the attack time
     attack_time = calculate_attack_time(y, sr)
@@ -154,6 +158,20 @@ def plot_attack_time(audio_path):
     plt.show()
 
 
+def plot_chroma(audio_path):
+    # Load the audio file
+    # y, sr = librosa.load(audio_path)
+    y, sr = read_audio_from_path(audio_path)
+
+    chroma = calculate_chroma_stft(y, sr)
+
+    plt.figure(figsize=(10, 6))
+    librosa.display.specshow(chroma, y_axis='chroma', x_axis='time')
+    plt.colorbar()
+    plt.title('Chromagram')
+    plt.show()
+
+
 def plot_spectral_bandwidth(audio_path):
     """
     Visualize the spectral bandwidth of an audio file.
@@ -162,19 +180,97 @@ def plot_spectral_bandwidth(audio_path):
     - audio_path: Path to the audio file.
     """
     # Load the audio file
-    y, sr = librosa.load(audio_path)
+    # y, sr = librosa.load(audio_path)
+    y, sr = read_audio_from_path(audio_path)
 
     # Calculate the spectral bandwidth
-    spectral_bandwidth = calculate_spectral_bandwidth(y, sr)
+    spectral_bandwidth = calculate_spectral_bandwidth(y, sr)[0]
 
     # Create time array
-    times = librosa.times_like(spectral_bandwidth)
+    times = librosa.frames_to_time(np.arange(len(spectral_bandwidth)), sr=sr)
 
     # Plot the waveform and spectral bandwidth
     plt.figure(figsize=(10, 6))
-    librosa.display.waveshow(y, sr=sr, alpha=0.5)
-    plt.plot(times, spectral_bandwidth[0], color='r')
+    plt.plot(times, spectral_bandwidth, color='r')
     plt.title('Spectral Bandwidth')
     plt.xlabel('Time (s)')
     plt.ylabel('Spectral Bandwidth')
+    plt.show()
+
+
+def plot_spectral_contrast(audio_path):
+    """
+        Visualize the spectral bandwidth of an audio file.
+
+        Parameters:
+        - audio_path: Path to the audio file.
+        """
+    # Load the audio file
+    # y, sr = librosa.load(audio_path)
+    y, sr = read_audio_from_path(audio_path)
+
+    # Calculate the spectral bandwidth
+    average_contrast = np.mean(calculate_spectral_contrast(y, sr), axis=0)
+
+    # Create time array
+    times = librosa.frames_to_time(np.arange(len(average_contrast)), sr=sr)
+
+    # Plot the waveform and spectral bandwidth
+    plt.figure(figsize=(10, 6))
+    plt.plot(times, average_contrast, color='r')
+    plt.title('Average Spectral Contrast')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Average Contrast')
+    plt.show()
+
+
+def plot_spectral_flatness(audio_path):
+    """
+        Visualize the spectral bandwidth of an audio file.
+
+        Parameters:
+        - audio_path: Path to the audio file.
+        """
+    # Load the audio file
+    # y, sr = librosa.load(audio_path)
+    y, sr = read_audio_from_path(audio_path)
+
+    # Calculate the spectral bandwidth
+    spectral_flatness = calculate_spectral_flatness(y, sr)[0]
+
+    # Create time array
+    times = librosa.frames_to_time(np.arange(len(spectral_flatness)), sr=sr)
+
+    # Plot the waveform and spectral bandwidth
+    plt.figure(figsize=(10, 6))
+    plt.plot(times, spectral_flatness, color='r')
+    plt.title('Spectral Flatness')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Spectral Flatness')
+    plt.show()
+
+
+def plot_spectral_rolloff(audio_path):
+    """
+        Visualize the spectral bandwidth of an audio file.
+
+        Parameters:
+        - audio_path: Path to the audio file.
+        """
+    # Load the audio file
+    # y, sr = librosa.load(audio_path)
+    y, sr = read_audio_from_path(audio_path)
+
+    # Calculate the spectral bandwidth
+    spectral_rolloff = calculate_spectral_rolloff(y, sr)[0]
+
+    # Create time array
+    times = librosa.frames_to_time(np.arange(len(spectral_rolloff)), sr=sr)
+
+    # Plot the waveform and spectral bandwidth
+    plt.figure(figsize=(10, 6))
+    plt.plot(times, spectral_rolloff, color='r')
+    plt.title('Spectral Rolloff')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Spectral Rolloff')
     plt.show()

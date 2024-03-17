@@ -24,8 +24,9 @@
 # plt.colorbar(format='%+2.0f dB')
 # plt.title('Spectrogram')
 # plt.show()
+import sklearn.metrics.pairwise
 
-from utils import read_audio_from_path
+from utils import *
 from calculation_func import *
 from presentation_func import *
 
@@ -35,8 +36,8 @@ if __name__ == "__main__":
     #                           read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')))
     # print(compare_spectrum(read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav'),
     #                           read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')))
-    # plot_spectrogram('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav')
-    # plot_spectrogram('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')
+    # plot_spectrogram('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
+    # plot_spectrogram('datasets/Hand/Woodblocks/5.5wb.ff.stereo.aif')
     # plot_2_spectrogram('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav',
     #                    'datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')
     # plot_spectrum('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav', _type='line')
@@ -49,4 +50,18 @@ if __name__ == "__main__":
     #                        calculate_spectral_centroid('datasets/Hand/Castanets/castanet2.ff.stereo.aif'))
     # print(calculate_average_power(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
     # print(calculate_average_frequency(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
-    plot_attack_time('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
+    # print(calculate_average_frequency(*read_audio_from_path('datasets/Hand/Woodblocks/5.5wb.ff.stereo.aif')))
+
+    # plot_attack_time('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
+    # print(calculate_mfcc(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
+    summarize_audio_files('datasets/Hand')
+    # print(calculate_spectral_bandwidth(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
+    # print(calculate_spectral_contrast(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
+    # print(calculate_spectral_flatness(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
+    # print(calculate_spectral_rolloff(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
+    # plot_spectral_bandwidth('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
+    # plot_spectral_contrast('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
+    # plot_spectral_flatness('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
+    # plot_spectral_rolloff('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
+    # print(calculate_average_pitch(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
+    # plot_chroma('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
