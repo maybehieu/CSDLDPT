@@ -7,7 +7,7 @@ def read_audio_from_path(_path=r''):
     try:
         y, sr = librosa.load(_path)
         try:
-            y, _ = librosa.effects.trim(y, sr)
+            y, _ = librosa.effects.trim(y)
         except:
             print(f'Error trimming file {_path}')
         return y, sr
@@ -54,7 +54,7 @@ def summarize_audio_files(mother_direc):
 
             # Calculate chromatogram
             chroma = librosa.feature.chroma_stft(y=trimmed_audio, sr=sr)
-            print(len(chroma), chroma)
+            print(len(chroma[0]))
             chromas.append(chroma)
 
         # Plot spectral centroids
@@ -84,9 +84,19 @@ def summarize_audio_files(mother_direc):
         plt.show()
 
         # Plot chromatogram
-        chroma = np.mean(np.stack(chroma, axis=0), axis=0)
+        # add padding to ensure all array have the same shape
+        max_shape = max(chroma.shape for chroma in chromas)
+        padded = []
+        for chroma in chromas:
+            pad_rows = max_shape[0] - chroma.shape[0]
+            pad_cols = max_shape[1] - chroma.shape[1]
+            padded_chroma = np.pad(chroma, ((0, pad_rows), (0, pad_cols)), mode='constant')
+            padded.append(padded_chroma)
+
+        padded = np.mean(np.stack(padded, axis=0), axis=0)
+
         plt.figure(figsize=(10, 6))
-        librosa.display.specshow(chroma, y_axis='chroma', x_axis='time')
+        librosa.display.specshow(padded, y_axis='chroma', x_axis='time')
         plt.colorbar()
         plt.title(f'Chromatogram ({sub})')
         plt.show()
@@ -94,3 +104,41 @@ def summarize_audio_files(mother_direc):
         # Print average length of audio
         average_length = np.mean([tup[0] for tup in audio_lengths])
         print(f"Average length of audio files ({sub}): {average_length:.2f} seconds")
+
+
+def plot_all_chromatogram(sub):
+    audio_files = [file for file in os.listdir(sub) if file.endswith(('.wav', '.aif'))]
+
+    spectral_centroids = []
+    attack_times = []
+    audio_lengths = []
+    chromas = []
+
+    for audio_file in audio_files:
+        # Load audio file
+        audio_path = os.path.join(sub, audio_file)
+        y, sr = librosa.load(audio_path, sr=None)
+
+        # Trim audio to remove silence
+        trimmed_audio, _ = librosa.effects.trim(y)
+
+        # Calculate chromatogram
+        chroma = librosa.feature.chroma_stft(y=trimmed_audio, sr=sr)
+        # chromas.append(chroma)
+        plt.figure(figsize=(10, 6))
+        librosa.display.specshow(chroma, y_axis='chroma', x_axis='time')
+        plt.colorbar()
+        plt.title(f'Chromatogram ({audio_file})')
+        plt.show()
+
+    # Plot chromatogram
+    # # add padding to ensure all array have the same shape
+    # max_shape = max(chroma.shape for chroma in chromas)
+    # padded = []
+    # for chroma in chromas:
+    #     pad_rows = max_shape[0] - chroma.shape[0]
+    #     pad_cols = max_shape[1] - chroma.shape[1]
+    #     padded_chroma = np.pad(chroma, ((0, pad_rows), (0, pad_cols)), mode='constant')
+    #     padded.append(padded_chroma)
+    #
+    # padded = np.mean(np.stack(padded, axis=0), axis=0)
