@@ -228,3 +228,10 @@ def calculate_spectral_rolloff(y, sr):
     S = np.abs(librosa.stft(y))
     spectral_rolloff = librosa.feature.spectral_rolloff(S=S)
     return spectral_rolloff
+
+
+def calculate_harmonicity(y, sr):
+    y_harmonic = librosa.effects.harmonic(y)
+    return y_harmonic
+
+

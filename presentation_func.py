@@ -274,3 +274,25 @@ def plot_spectral_rolloff(audio_path):
     plt.xlabel('Time (s)')
     plt.ylabel('Spectral Rolloff')
     plt.show()
+
+
+def plot_harmornicity(audio_path):
+    y, sr = read_audio_from_path(audio_path)
+
+    harmonic = calculate_harmonicity(y, sr)
+
+    # plt.figure(figsize=(10, 6))
+    # librosa.display.waveshow(harmonic, sr=sr)
+    # plt.title('Harmonic Component')
+    # plt.show()
+
+    # Compute the Short-Time Fourier Transform (STFT) of the harmonic component
+    S_harmonic = librosa.stft(harmonic)
+
+    # Plot the harmonic component as a spectrogram
+    plt.figure(figsize=(10, 4))
+    librosa.display.specshow(librosa.amplitude_to_db(abs(S_harmonic), ref=np.max),
+                             y_axis='log', x_axis='time')
+    plt.colorbar(format='%+2.0f dB')
+    plt.title('Harmonic Component Spectrogram')
+    plt.show()
