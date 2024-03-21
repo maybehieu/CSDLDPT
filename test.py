@@ -36,13 +36,13 @@ if __name__ == "__main__":
     #                           read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')))
     # print(compare_spectrum(read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav'),
     #                           read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')))
-    plot_spectrogram('datasets/Hand/Woodblocks/5.5wb.ff.stereo.aif')
+    # plot_spectrogram('datasets/Hand/Woodblocks/5.5wb.ff.stereo.aif')
     # plot_spectrogram('datasets/Hand/Woodblocks/5.5wb.ff.stereo.aif')
     # plot_2_spectrogram('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav',
     #                    'datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')
     # plot_spectrum('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav', _type='line')
     # plot_spectrum('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav', _type='line')
-    # plot_spectrum('datasets/Hand/Claves/clave1.ff.stereo.aif', _type='line', max_freq=15000)
+    plot_spectrum('datasets/Hand/Mostly Drum/422458.wav', _type='line', max_freq=2000)
 
     # plot_spectral_centroid('datasets/Hand/Claves/clave1.ff.stereo.aif',
     #                        calculate_spectral_centroid('datasets/Hand/Claves/clave1.ff.stereo.aif'))
@@ -73,4 +73,5 @@ if __name__ == "__main__":
     # print(len(chroma2[0]))
     # print(chroma2)
     # print(calculate_harmonic(*read_audio_from_path('datasets/Hand/Castanets/castanet1.ff.aif')))
-    plot_harmornicity('datasets/Hand/Woodblocks/5.5wb.ff.stereo.aif')
+    # plot_harmornicity('datasets/Hand/Woodblocks/5.5wb.ff.stereo.aif')
+    print(calculate_max_frequency(*read_audio_from_path('datasets/Hand/Mostly Drum/422458.wav')))

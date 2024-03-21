@@ -235,3 +235,8 @@ def calculate_harmonicity(y, sr):
     return y_harmonic
 
 
+def calculate_max_frequency(y, sr):
+    spectrogram = np.abs(librosa.stft(y))
+    peak = np.argmax(spectrogram, axis=0)
+    peak_hz = librosa.fft_frequencies(sr=sr, n_fft=spectrogram.shape[0])[peak]
+    return peak_hz

@@ -41,7 +41,7 @@ def plot_spectrum(audio_path, _type='default', max_freq=2000):
         spectrum = np.abs(librosa.stft(y))
 
         # Plot the spectrum
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(10, 12))
         librosa.display.specshow(librosa.amplitude_to_db(spectrum, ref=np.max), sr=sr, x_axis='time', y_axis='log')
         plt.colorbar(format='%+2.0f dB')
         plt.title('Spectrum')
@@ -50,20 +50,37 @@ def plot_spectrum(audio_path, _type='default', max_freq=2000):
         plt.show()
 
     if _type == 'line':
-        # Compute the Fourier Transform of the audio signal
-        Y = np.fft.fft(y)
+        # # Compute the Fourier Transform of the audio signal
+        # Y = np.fft.fft(y)
+        #
+        # # Calculate the frequency bins
+        # freqs = np.fft.fftfreq(len(Y), 1 / sr)
+        #
+        # # Plot the spectrum using a line plot
+        # plt.figure(figsize=(20, 6))
+        # plt.plot(freqs[:len(Y) // 2], np.abs(Y)[:len(Y) // 2])  # Plot only positive frequencies
+        # plt.title('Spectrum Plot (Amplitude vs Frequency)')
+        # plt.xlabel('Frequency (Hz)')
+        # plt.ylabel('Amplitude')
+        # plt.xlim(0, max_freq)
+        # plt.grid()
+        # plt.show()
 
-        # Calculate the frequency bins
-        freqs = np.fft.fftfreq(len(Y), 1 / sr)
+        # Compute the Short-Time Fourier Transform (STFT)
+        D = librosa.stft(y)
 
-        # Plot the spectrum using a line plot
+        # Convert the STFT to a magnitude spectrogram
+        # spectrogram = np.abs(D)
+
+        # Compute the average amplitude of the frequency components over time
+        average_spectrum = np.mean(D, axis=1)
+
+        # Plot the average spectrum as a line plot
         plt.figure(figsize=(10, 6))
-        plt.plot(freqs[:len(Y) // 2], np.abs(Y)[:len(Y) // 2])  # Plot only positive frequencies
-        plt.title('Spectrum Plot (Amplitude vs Frequency)')
-        plt.xlabel('Frequency (Hz)')
-        plt.ylabel('Amplitude')
-        plt.xlim(0, max_freq)
-        plt.grid()
+        plt.plot(average_spectrum)
+        plt.title('Average Spectrum')
+        plt.xlabel('Frequency Bin')
+        plt.ylabel('Average Amplitude')
         plt.show()
 
 
