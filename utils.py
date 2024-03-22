@@ -2,10 +2,11 @@ import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import shutil
 
 def read_audio_from_path(_path=r''):
     try:
-        y, sr = librosa.load(_path)
+        y, sr = librosa.load(_path, sr=None)
         try:
             y, _ = librosa.effects.trim(y)
         except:
@@ -30,7 +31,7 @@ def summarize_audio_files(mother_direc):
         for audio_file in audio_files:
             # Load audio file
             audio_path = os.path.join(sub, audio_file)
-            y, sr = librosa.load(audio_path, sr=None)
+            y, sr = librosa.load(audio_path)
 
             # Trim audio to remove silence
             trimmed_audio, _ = librosa.effects.trim(y)
@@ -106,6 +107,21 @@ def summarize_audio_files(mother_direc):
         print(f"Average length of audio files ({sub}): {average_length:.2f} seconds")
 
 
+def run_func_on_all_datasets(mother_dir, func):
+    subfolder = [os.path.normpath(mother_dir + '/' + _) for _ in os.listdir(mother_dir) if os.path.isdir(os.path.normpath(mother_dir + '/' + _))]
+    if len(subfolder) == 0:
+        audio_files = [file for file in os.listdir(mother_dir) if file.endswith(('.wav', '.aif'))]
+        for audio_file in audio_files:
+            audio_path = os.path.normpath(os.path.join(mother_dir, audio_file))
+            func(audio_path)
+    for sub in subfolder:
+        print(sub)
+        audio_files = [file for file in os.listdir(sub) if file.endswith(('.wav', '.aif'))]
+        for audio_file in audio_files:
+            audio_path = os.path.normpath(os.path.join(sub, audio_file))
+            func(audio_path)
+
+
 def plot_all_chromatogram(sub):
     audio_files = [file for file in os.listdir(sub) if file.endswith(('.wav', '.aif'))]
 
@@ -142,3 +158,19 @@ def plot_all_chromatogram(sub):
     #     padded.append(padded_chroma)
     #
     # padded = np.mean(np.stack(padded, axis=0), axis=0)
+
+
+def move_audio_time_based(audio_path, output_path='datasets/Scraps/'):
+    y, sr = read_audio_from_path(audio_path)
+    audio_length = librosa.get_duration(y=y, sr=sr)
+    if audio_length > 1.0:
+        print(f'moving: {audio_path}')
+        index = audio_path.rfind('\\')
+        index = audio_path.rfind('\\', 0, index)
+        file_context = audio_path[index + 1:]
+        output_path = os.path.normpath(output_path + file_context)
+        # create dir if not exists
+        dir = os.path.dirname(output_path)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        shutil.move(audio_path, output_path)

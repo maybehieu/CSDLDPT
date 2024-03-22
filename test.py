@@ -1,37 +1,27 @@
-# import librosa
-# import librosa.display
-# import matplotlib.pyplot as plt
-# import numpy as np
-#
-# # Load audio file
-# audio_path = r'F:\Documents\CSDLDPT\datasets\MDLib2.2\Sorted\Cymbals\Dark Crash\Clamp\DI_Dark Crash_Clamp_1111.1.wav'
-# y, sr = librosa.load(audio_path)
-#
-# # Display the waveform
-# plt.figure(figsize=(12, 6))
-# librosa.display.waveshow(y, sr=sr)
-# plt.xlabel('Time (seconds)')
-# plt.ylabel('Amplitude')
-# plt.title('Waveform')
-# plt.show()
-#
-# # Calculate and display the spectrogram
-# D = librosa.stft(y)
-# D_db = librosa.amplitude_to_db(abs(D), ref=np.max)
-#
-# plt.figure(figsize=(12, 6))
-# librosa.display.specshow(D_db, sr=sr, x_axis='time', y_axis='log')
-# plt.colorbar(format='%+2.0f dB')
-# plt.title('Spectrogram')
-# plt.show()
-import sklearn.metrics.pairwise
+import librosa
 
 from utils import *
 from calculation_func import *
 from presentation_func import *
 
+def test_func(audio_path):
+    # Compute the RMS value for each frame
+    y, sr = librosa.load(audio_path, sr=None)
+    rms = librosa.feature.rms(y=y)
+    audio_length = librosa.get_duration(y=y, sr=sr)
+    print(sr, len(rms[0]), audio_length)
+    # # Plot the RMS values
+    # plt.figure(figsize=(10, 4))
+    # plt.semilogy(librosa.times_like(rms), rms[0], label='RMS Energy')
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('RMS Energy')
+    # plt.legend()
+    # plt.show()
+
 
 if __name__ == "__main__":
+    run_func_on_all_datasets('datasets/Processed/Beijing', test_func)
+
     # print(compare_spectrogram(read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav'),
     #                           read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')))
     # print(compare_spectrum(read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav'),
@@ -42,7 +32,7 @@ if __name__ == "__main__":
     #                    'datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')
     # plot_spectrum('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav', _type='line')
     # plot_spectrum('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav', _type='line')
-    plot_spectrum('datasets/Hand/Mostly Drum/422458.wav', _type='line', max_freq=2000)
+    # plot_spectrum('datasets/Hand/Mostly Drum/422458.wav', _type='line', max_freq=2000)
 
     # plot_spectral_centroid('datasets/Hand/Claves/clave1.ff.stereo.aif',
     #                        calculate_spectral_centroid('datasets/Hand/Claves/clave1.ff.stereo.aif'))
@@ -74,4 +64,4 @@ if __name__ == "__main__":
     # print(chroma2)
     # print(calculate_harmonic(*read_audio_from_path('datasets/Hand/Castanets/castanet1.ff.aif')))
     # plot_harmornicity('datasets/Hand/Woodblocks/5.5wb.ff.stereo.aif')
-    print(calculate_max_frequency(*read_audio_from_path('datasets/Hand/Mostly Drum/422458.wav')))
+    # print(calculate_max_frequency(*read_audio_from_path('datasets/Hand/Mostly Drum/422458.wav')))
