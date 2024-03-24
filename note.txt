@@ -1,1 +1,13 @@
 mfcc is for speech mainly
+
+avail:
+- spectral centroid (distinguishable)
+- chromatogram (pitch, stft)
+- power
+- spectrogram (stft)
+- mel-spectrogram
+- spectral bandwidth
+- spectral contrast
+- spectral flatness
+- spectral rolloff
+- onset envelope (peak power)

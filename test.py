@@ -1,4 +1,5 @@
 import librosa
+import matplotlib.pyplot as plt
 
 from utils import *
 from calculation_func import *
@@ -7,6 +8,7 @@ from presentation_func import *
 def test_func(audio_path):
     # Compute the RMS value for each frame
     y, sr = librosa.load(audio_path, sr=None)
+    y, _ = librosa.effects.trim(y)
     rms = librosa.feature.rms(y=y)
     audio_length = librosa.get_duration(y=y, sr=sr)
     print(sr, len(rms[0]), audio_length)
@@ -19,8 +21,61 @@ def test_func(audio_path):
     # plt.show()
 
 
+def func(path):
+    y, sr = librosa.load(path, sr=None)
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+    N = len(y)
+    T = N / float(sr)
+    t = np.linspace(0, T, len(onset_env))
+    # Plot the onset envelope:
+
+    plt.figure(figsize=(14, 5))
+    plt.plot(t, onset_env)
+    plt.xlabel('Time (sec)')
+    plt.xlim(xmin=0)
+    plt.ylim(0)
+    plt.show()
+
+# # calculate STFT
+#     D = librosa.stft(y)
+#     # calculate power
+#     power = np.abs(D) ** 2
+#     power = librosa.power_to_db(np.abs(D)**2)
+#     print(power, len(power))
+#     # mean
+#     average_power = np.mean(power)
+#     print(average_power)
+# Load the audio file
+
+    # Compute the Mel spectrogram
+    # S = librosa.feature.melspectrogram(y=y, sr=sr,
+    #                                    # n_mels=128
+    #                                    )
+    # S = np.abs(librosa.stft(y))
+    # print(len(S), len(S[0]))
+    # # Convert to decibel scale
+    # S_db = librosa.power_to_db(S, ref=np.max)
+    #
+    # # Calculate the average value of the spectrogram over time
+    # average_spectrogram = np.mean(S_db, axis=0)
+    #
+    # # Calculate the time axis
+    # time_axis = librosa.frames_to_time(np.arange(S_db.shape[1]), sr=sr)
+    #
+    # # Plot the average value of the spectrogram over time
+    # plt.figure(figsize=(10, 4))
+    # plt.plot(time_axis, average_spectrogram)
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('Average dB')
+    # plt.title('Average Spectrogram Value Over Time')
+    # plt.show()
+
+
 if __name__ == "__main__":
-    run_func_on_all_datasets('datasets/Processed/Beijing', test_func)
+    # run_func_on_all_datasets('datasets/Processed', func)
+    summarize_audio_files('datasets/Processed')
+
+    # func('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
 
     # print(compare_spectrogram(read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav'),
     #                           read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')))
@@ -44,7 +99,7 @@ if __name__ == "__main__":
 
     # plot_attack_time('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
     # print(calculate_mfcc(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
-    # summarize_audio_files('datasets/Hand')
+
     # plot_all_chromatogram('datasets/Hand/Castanets')
     # print(calculate_spectral_bandwidth(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))
     # print(calculate_spectral_contrast(*read_audio_from_path('datasets/Hand/Castanets/castanet2.ff.stereo.aif')))

@@ -91,6 +91,8 @@ def calculate_average_power(y, sr):
     D = librosa.stft(y)
     # calculate power
     power = np.abs(D) ** 2
+    power = librosa.power_to_db(np.abs(D)**2)
+    print(power, len(power))
     # mean
     average_power = np.mean(power)
     return average_power
@@ -110,6 +112,14 @@ def calculate_average_frequency(y, sr):
     # Calculate the average frequency
     average_frequency = weighted_sum / total_energy
     return np.mean(average_frequency), average_frequency
+
+
+def calculate_spectrogram(y, sr):
+    return np.abs(librosa.stft(y))
+
+
+def calculate_mel_spectrogram(y, sr):
+    return librosa.features.melspectrogram(y=y, sr=sr)
 
 
 def compare_spectrogram(a = (), b = ()):
@@ -144,28 +154,6 @@ def compare_spectrum(a = (), b = ()):
     spectrum2 = np.abs(librosa.stft(y2)).flatten()
 
     return cosine_similarity_sklearn(spectrum1.reshape(-1, 1), spectrum2.reshape(-1, 1))[0, 0]
-
-
-def calculate_spectral_centroid(audio_path):
-    """
-    Calculate the spectral centroid of an audio file.
-
-    Parameters:
-    - audio_path: Path to the audio file.
-
-    Returns:
-    - spectral_centroid: Spectral centroid of the audio file.
-    """
-    # Load the audio file
-    y, sr = librosa.load(audio_path)
-
-    # Compute the short-time Fourier transform (STFT) of the audio signal
-    D = librosa.stft(y)
-
-    # Calculate the spectral centroid
-    spectral_centroid = librosa.feature.spectral_centroid(S=np.abs(D), sr=sr)
-
-    return spectral_centroid
 
 
 def calculate_attack_time(y, sr):
@@ -206,6 +194,19 @@ def calculate_chroma_stft(y, sr):
     return chroma
 
 
+def calculate_spectral_centroid(audio_path):
+    # Load the audio file
+    y, sr = librosa.load(audio_path)
+
+    # Compute the short-time Fourier transform (STFT) of the audio signal
+    D = librosa.stft(y)
+
+    # Calculate the spectral centroid
+    spectral_centroid = librosa.feature.spectral_centroid(S=np.abs(D), sr=sr)
+
+    return spectral_centroid[0]
+
+
 def calculate_spectral_bandwidth(y, sr):
     S = np.abs(librosa.stft(y))
     spectral_bandwidth = librosa.feature.spectral_bandwidth(S=S, sr=sr)
@@ -240,3 +241,7 @@ def calculate_max_frequency(y, sr):
     peak = np.argmax(spectrogram, axis=0)
     peak_hz = librosa.fft_frequencies(sr=sr, n_fft=spectrogram.shape[0])[peak]
     return peak_hz
+
+
+def calculate_onset_envelope(y, sr):
+    return librosa.onset.onset_strength(y=y, sr=sr)
