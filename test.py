@@ -1,5 +1,8 @@
+import os.path
+
 import librosa
 import matplotlib.pyplot as plt
+import sklearn.metrics.pairwise
 
 from utils import *
 from calculation_func import *
@@ -71,11 +74,24 @@ def func(path):
     # plt.show()
 
 
-if __name__ == "__main__":
-    # run_func_on_all_datasets('datasets/Processed', func)
-    summarize_audio_files('datasets/Processed')
+def get_name(path):
+    filename, ext = os.path.splitext(os.path.basename(path))
+    print(filename, ext)
 
+
+if __name__ == "__main__":
+    # run_func_on_all_datasets('datasets/Processed', get_name)
+    # summarize_audio_files('datasets/Processed')
+    # plot_spectral_contrast('datasets/Processed/Castanets/castanet2.ff.stereo.wav')
+    # create_feature_file('datasets/Processed/Castanets/castanet2.ff.stereo.wav')
     # func('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
+
+    feat1 = create_feature_file('datasets/Processed/Clap/2040.wav')
+    feat2 = create_feature_file('datasets/Processed/Mostly Drum/422461.wav')
+
+    # feat1 = feat1.astype(np.float64)
+
+    print(calculate_similarity_between_feats(feat1, feat2))
 
     # print(compare_spectrogram(read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav'),
     #                           read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')))

@@ -245,3 +245,19 @@ def calculate_max_frequency(y, sr):
 
 def calculate_onset_envelope(y, sr):
     return librosa.onset.onset_strength(y=y, sr=sr)
+
+
+def calculate_similarity_between_feats(feat1, feat2):
+    sims = []
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['centroid'][0],feat2['centroid'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['chroma'][0],feat2['chroma'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['power'][0],feat2['power'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['stft_spectro'][0],feat2['stft_spectro'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['mel_spectro'][0],feat2['mel_spectro'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['spectral_bandwidth'][0],feat2['spectral_bandwidth'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['spectral_contrast'][0],feat2['spectral_contrast'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['spectral_flatness'][0],feat2['spectral_flatness'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['spectral_rolloff'][0],feat2['spectral_rolloff'][0]))
+    sims.append(sklearn.metrics.pairwise.cosine_similarity(feat1['onset_env'][0],feat2['onset_env'][0]))
+    print(sims)
+    return np.mean(sims)

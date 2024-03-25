@@ -275,5 +275,74 @@ def move_audio_time_based(audio_path, output_path="datasets/Scraps/"):
         shutil.move(audio_path, output_path)
 
 
-def create_feature_file():
-    pass
+def create_feature_file(path):
+    trimmed_audio, sr = librosa.load(path, sr=44100)
+
+    stft = librosa.stft(trimmed_audio)
+
+    # Calculate spectral centroid
+    spectral_centroid = librosa.feature.spectral_centroid(
+        y=trimmed_audio, sr=sr
+    )
+
+    # # Calculate chromatogram
+    chroma = librosa.feature.chroma_stft(y=trimmed_audio, sr=sr)
+
+    # Calculate power
+    power = librosa.power_to_db(np.abs(stft**2))
+
+    # Calculate stft spectrogram
+    stftspectro = np.abs(stft)
+
+    # Calculate mel-spectrogram
+    melspectro = librosa.feature.melspectrogram(y=trimmed_audio, sr=sr)
+
+    # Calculate spectral bandwidth
+    spectral_bandwidth = librosa.feature.spectral_bandwidth(
+        S=np.abs(stft), sr=sr
+    )
+
+    # Calculate spectral contrast
+    spectral_contrast = librosa.feature.spectral_contrast(S=np.abs(stft))
+
+    # Calculate spectral flatness
+    spectral_flatness = librosa.feature.spectral_flatness(S=np.abs(stft))
+
+    # Calculate spectral rolloff
+    spectral_rolloff = librosa.feature.spectral_rolloff(S=np.abs(stft))
+
+    # Calculate onset envelope
+    onset_env = librosa.onset.onset_strength(y=trimmed_audio, sr=sr)
+    onset_env = onset_env.reshape(-1, 1)
+
+    # print(spectral_centroid.shape,chroma.shape,power.shape,stftspectro.shape,melspectro.shape,
+    #       spectral_bandwidth.shape,spectral_contrast.shape,spectral_flatness.shape,spectral_rolloff.shape,onset_env.shape)
+
+    # Create the feature vector
+    f_dtype = [('centroid', 'f4', spectral_centroid.shape),
+               ('chroma', 'f4', chroma.shape),
+               ('power', 'f4', power.shape),
+               ('stft_spectro', 'f4', stftspectro.shape),
+               ('mel_spectro', 'f4', melspectro.shape),
+               ('spectral_bandwidth', 'f4', spectral_bandwidth.shape),
+               ('spectral_contrast', 'f4', spectral_contrast.shape),
+               ('spectral_flatness', 'f4', spectral_flatness.shape),
+               ('spectral_rolloff', 'f4', spectral_rolloff.shape),
+               ('onset_env', 'f4', onset_env.shape)]
+
+    feature_vector = np.empty(1, dtype=f_dtype)
+
+    feature_vector['centroid'] = spectral_centroid
+    feature_vector['chroma'] = chroma
+    feature_vector['power'] = power
+    feature_vector['stft_spectro'] = stftspectro
+    feature_vector['mel_spectro'] = melspectro
+    feature_vector['spectral_bandwidth'] = spectral_bandwidth
+    feature_vector['spectral_contrast'] = spectral_contrast
+    feature_vector['spectral_flatness'] = spectral_flatness
+    feature_vector['spectral_rolloff'] = spectral_rolloff
+    feature_vector['onset_env'] = onset_env
+
+    # filename, ext = os.path.splitext(os.path.basename(path))
+    # np.save(os.path.normpath('features/' + filename + '.npy'), feature_vector)
+    return feature_vector

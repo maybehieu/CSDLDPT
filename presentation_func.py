@@ -227,17 +227,13 @@ def plot_spectral_contrast(audio_path):
     y, sr = read_audio_from_path(audio_path)
 
     # Calculate the spectral bandwidth
-    average_contrast = np.mean(calculate_spectral_contrast(y, sr), axis=0)
+    contrast = calculate_spectral_contrast(y, sr)
 
-    # Create time array
-    times = librosa.frames_to_time(np.arange(len(average_contrast)), sr=sr)
-
-    # Plot the waveform and spectral bandwidth
-    plt.figure(figsize=(10, 6))
-    plt.plot(times, average_contrast, color='r')
-    plt.title('Average Spectral Contrast')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Average Contrast')
+    for entry_index in range(len(contrast)):
+        plt.plot(contrast[entry_index], label=f'Entry {entry_index + 1}')
+    plt.title(f'{audio_path}')
+    plt.xlabel('t')
+    plt.ylabel('sc')
     plt.show()
 
 
