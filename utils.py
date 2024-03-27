@@ -198,7 +198,8 @@ def summarize_audio_files(mother_direc):
         # print(f"Average length of audio files ({sub}): {average_length:.2f} seconds")
 
 
-def run_func_on_all_datasets(mother_dir, func):
+def run_func_on_all_datasets(mother_dir, func, arg1):
+    res = []
     subfolder = [
         os.path.normpath(mother_dir + "/" + _)
         for _ in os.listdir(mother_dir)
@@ -210,7 +211,9 @@ def run_func_on_all_datasets(mother_dir, func):
         ]
         for audio_file in audio_files:
             audio_path = os.path.normpath(os.path.join(mother_dir, audio_file))
-            func(audio_path)
+            if arg1 is not None:
+                res.append((audio_path, func(audio_path, arg1)))
+            else: res.append(func(audio_path))
     for sub in subfolder:
         print(sub)
         audio_files = [
@@ -218,7 +221,12 @@ def run_func_on_all_datasets(mother_dir, func):
         ]
         for audio_file in audio_files:
             audio_path = os.path.normpath(os.path.join(sub, audio_file))
-            func(audio_path)
+            if arg1 is not None:
+                res.append((audio_path, func(audio_path, arg1)))
+            else:
+                res.append(func(audio_path))
+
+    return res
 
 
 def plot_all_chromatogram(sub):
@@ -275,7 +283,7 @@ def move_audio_time_based(audio_path, output_path="datasets/Scraps/"):
         shutil.move(audio_path, output_path)
 
 
-def create_feature_file(path):
+def create_feature(path, mode=0):
     trimmed_audio, sr = librosa.load(path, sr=44100)
 
     stft = librosa.stft(trimmed_audio)
@@ -343,6 +351,18 @@ def create_feature_file(path):
     feature_vector['spectral_rolloff'] = spectral_rolloff
     feature_vector['onset_env'] = onset_env
 
-    # filename, ext = os.path.splitext(os.path.basename(path))
-    # np.save(os.path.normpath('features/' + filename + '.npy'), feature_vector)
-    return feature_vector
+    if mode == 0:
+        filename, ext = os.path.splitext(os.path.basename(path))
+        np.save(os.path.normpath('features/' + filename + '.npy'), feature_vector)
+    else:
+        return feature_vector
+
+
+def load_feature(path):
+    return np.load(os.path.normpath(path))
+
+
+def load_all_features(path):
+    feature_files = [file for file in os.listdir(path) if file.endswith(".npy")]
+    paths = [os.path.join(path, file) for file in feature_files]
+    return [np.load(path) for path in paths]

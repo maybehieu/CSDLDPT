@@ -91,7 +91,7 @@ def calculate_average_power(y, sr):
     D = librosa.stft(y)
     # calculate power
     power = np.abs(D) ** 2
-    power = librosa.power_to_db(np.abs(D)**2)
+    power = librosa.power_to_db(np.abs(D) ** 2)
     print(power, len(power))
     # mean
     average_power = np.mean(power)
@@ -122,7 +122,7 @@ def calculate_mel_spectrogram(y, sr):
     return librosa.features.melspectrogram(y=y, sr=sr)
 
 
-def compare_spectrogram(a = (), b = ()):
+def compare_spectrogram(a=(), b=()):
     y1, sr1 = a[0], a[1]
     y2, sr2 = b[0], b[1]
 
@@ -146,14 +146,16 @@ def compare_spectrogram(a = (), b = ()):
     return mean_similarity
 
 
-def compare_spectrum(a = (), b = ()):
+def compare_spectrum(a=(), b=()):
     y1, sr1 = a[0], a[1]
     y2, sr2 = b[0], b[1]
 
     spectrum1 = np.abs(librosa.stft(y1)).flatten()
     spectrum2 = np.abs(librosa.stft(y2)).flatten()
 
-    return cosine_similarity_sklearn(spectrum1.reshape(-1, 1), spectrum2.reshape(-1, 1))[0, 0]
+    return cosine_similarity_sklearn(
+        spectrum1.reshape(-1, 1), spectrum2.reshape(-1, 1)
+    )[0, 0]
 
 
 def calculate_attack_time(y, sr):
@@ -249,23 +251,47 @@ def calculate_onset_envelope(y, sr):
 
 def calculate_similarity_between_feats(feat1, feat2):
     sims = []
-    centroid = sklearn.metrics.pairwise.cosine_similarity(feat1['centroid'][0], feat2['centroid'][0])
-    chroma = sklearn.metrics.pairwise.cosine_similarity(feat1['chroma'][0], feat2['chroma'][0])
-    power = sklearn.metrics.pairwise.cosine_similarity(feat1['power'][0], feat2['power'][0])
-    stft_spectro = sklearn.metrics.pairwise.cosine_similarity(feat1['stft_spectro'][0], feat2['stft_spectro'][0])
-    mel_spectro = sklearn.metrics.pairwise.cosine_similarity(feat1['mel_spectro'][0], feat2['mel_spectro'][0])
-    bandwidth = sklearn.metrics.pairwise.cosine_similarity(feat1['spectral_bandwidth'][0], feat2['spectral_bandwidth'][0])
-    contrast = sklearn.metrics.pairwise.cosine_similarity(feat1['spectral_contrast'][0], feat2['spectral_contrast'][0])
-    flatness = sklearn.metrics.pairwise.cosine_similarity(feat1['spectral_flatness'][0], feat2['spectral_flatness'][0])
-    rolloff = sklearn.metrics.pairwise.cosine_similarity(feat1['spectral_rolloff'][0], feat2['spectral_rolloff'][0])
-    onset = sklearn.metrics.pairwise.cosine_similarity(feat1['onset_env'][0], feat2['onset_env'][0])
-    print(np.mean(np.mean(chroma, axis=0)))
-    print(np.mean(centroid))
-    print(np.mean(power))
-    print(np.mean(stft_spectro))
-    print(np.mean(mel_spectro))
-    print(np.mean(bandwidth))
-    print(np.mean(contrast))
-    print(np.mean(flatness))
-    print(np.mean(rolloff))
-    print(np.mean(onset))
+    centroid = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["centroid"][0], feat2["centroid"][0]
+    )
+    chroma = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["chroma"][0], feat2["chroma"][0]
+    )
+    power = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["power"][0], feat2["power"][0]
+    )
+    stft_spectro = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["stft_spectro"][0], feat2["stft_spectro"][0]
+    )
+    mel_spectro = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["mel_spectro"][0], feat2["mel_spectro"][0]
+    )
+    bandwidth = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["spectral_bandwidth"][0], feat2["spectral_bandwidth"][0]
+    )
+    contrast = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["spectral_contrast"][0], feat2["spectral_contrast"][0]
+    )
+    flatness = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["spectral_flatness"][0], feat2["spectral_flatness"][0]
+    )
+    rolloff = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["spectral_rolloff"][0], feat2["spectral_rolloff"][0]
+    )
+    onset = sklearn.metrics.pairwise.cosine_similarity(
+        feat1["onset_env"][0], feat2["onset_env"][0]
+    )
+
+    all_feat = [
+        np.mean(np.mean(chroma, axis=0)),
+        np.mean(centroid),
+        np.mean(power),
+        np.mean(stft_spectro),
+        np.mean(mel_spectro),
+        np.mean(bandwidth),
+        np.mean(contrast),
+        np.mean(flatness),
+        np.mean(rolloff),
+        np.mean(onset),
+    ]
+    return np.mean(all_feat)

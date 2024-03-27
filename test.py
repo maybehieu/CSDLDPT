@@ -8,6 +8,7 @@ from utils import *
 from calculation_func import *
 from presentation_func import *
 
+
 def test_func(audio_path):
     # Compute the RMS value for each frame
     y, sr = librosa.load(audio_path, sr=None)
@@ -39,6 +40,7 @@ def func(path):
     plt.ylim(0)
     plt.show()
 
+
 # # calculate STFT
 #     D = librosa.stft(y)
 #     # calculate power
@@ -50,28 +52,28 @@ def func(path):
 #     print(average_power)
 # Load the audio file
 
-    # Compute the Mel spectrogram
-    # S = librosa.feature.melspectrogram(y=y, sr=sr,
-    #                                    # n_mels=128
-    #                                    )
-    # S = np.abs(librosa.stft(y))
-    # print(len(S), len(S[0]))
-    # # Convert to decibel scale
-    # S_db = librosa.power_to_db(S, ref=np.max)
-    #
-    # # Calculate the average value of the spectrogram over time
-    # average_spectrogram = np.mean(S_db, axis=0)
-    #
-    # # Calculate the time axis
-    # time_axis = librosa.frames_to_time(np.arange(S_db.shape[1]), sr=sr)
-    #
-    # # Plot the average value of the spectrogram over time
-    # plt.figure(figsize=(10, 4))
-    # plt.plot(time_axis, average_spectrogram)
-    # plt.xlabel('Time (s)')
-    # plt.ylabel('Average dB')
-    # plt.title('Average Spectrogram Value Over Time')
-    # plt.show()
+# Compute the Mel spectrogram
+# S = librosa.feature.melspectrogram(y=y, sr=sr,
+#                                    # n_mels=128
+#                                    )
+# S = np.abs(librosa.stft(y))
+# print(len(S), len(S[0]))
+# # Convert to decibel scale
+# S_db = librosa.power_to_db(S, ref=np.max)
+#
+# # Calculate the average value of the spectrogram over time
+# average_spectrogram = np.mean(S_db, axis=0)
+#
+# # Calculate the time axis
+# time_axis = librosa.frames_to_time(np.arange(S_db.shape[1]), sr=sr)
+#
+# # Plot the average value of the spectrogram over time
+# plt.figure(figsize=(10, 4))
+# plt.plot(time_axis, average_spectrogram)
+# plt.xlabel('Time (s)')
+# plt.ylabel('Average dB')
+# plt.title('Average Spectrogram Value Over Time')
+# plt.show()
 
 
 def get_name(path):
@@ -80,18 +82,21 @@ def get_name(path):
 
 
 if __name__ == "__main__":
-    # run_func_on_all_datasets('datasets/Processed', get_name)
+    run_func_on_all_datasets('datasets/Processed', create_feature, None)
     # summarize_audio_files('datasets/Processed')
     # plot_spectral_contrast('datasets/Processed/Castanets/castanet2.ff.stereo.wav')
     # create_feature_file('datasets/Processed/Castanets/castanet2.ff.stereo.wav')
     # func('datasets/Hand/Castanets/castanet2.ff.stereo.aif')
 
-    feat1 = create_feature_file('datasets/Processed/Clap/2040.wav')
-    feat2 = create_feature_file('datasets/Processed/Mostly Drum/422461.wav')
+    feat1 = create_feature('datasets/Processed/Clap/2040.wav')
+    feat2 = create_feature('datasets/Processed/Mostly Drum/422461.wav')
 
     # feat1 = feat1.astype(np.float64)
 
-    print(calculate_similarity_between_feats(feat1, feat2))
+    # print(calculate_similarity_between_feats(feat1, feat2))
+    # sims = run_func_on_all_datasets('datasets/Processed', calculate_similarity_between_feats,
+    #                                 'datasets/Processed/Clap/2040.wav')
+    # print(sims)
 
     # print(compare_spectrogram(read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.1.wav'),
     #                           read_audio_from_path('datasets/MDLib2.2/Sorted/Kick/Long Kick/Press/DI_Long Kick_Press_1111.4.wav')))
