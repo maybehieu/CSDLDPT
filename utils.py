@@ -362,7 +362,10 @@ def load_feature(path):
     return np.load(os.path.normpath(path))
 
 
-def load_all_features(path):
+def load_all_features(path, mode=0):
     feature_files = [file for file in os.listdir(path) if file.endswith(".npy")]
     paths = [os.path.join(path, file) for file in feature_files]
-    return [np.load(path) for path in paths]
+    if mode == 0:
+        return [np.load(path) for path in paths]
+    else:
+        return [(np.load(path), path) for path in paths]
