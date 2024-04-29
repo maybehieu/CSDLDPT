@@ -3,7 +3,7 @@ import numpy as np
 import sklearn.metrics.pairwise
 
 
-from utils import read_audio_from_path
+from utils import read_audio_from_path, norm, power_to_db, expand_to
 
 
 def cosine_similarity(matrix1, matrix2):
@@ -247,6 +247,188 @@ def calculate_max_frequency(y, sr):
 
 def calculate_onset_envelope(y, sr):
     return librosa.onset.onset_strength(y=y, sr=sr)
+
+
+def stft(y, n_fft=2048, hop_length=None, window='hann'):
+    """
+    Compute the Short-Time Fourier Transform (STFT) of an audio signal.
+
+    Parameters
+    ----------
+    y : np.ndarray [shape=(n,)]
+        The audio signal.
+    n_fft : int > 0 [scalar]
+        FFT window size.
+    hop_length : int > 0 [scalar]
+        Number of samples between successive frames.
+        If not given, defaults to ``n_fft // 4``.
+    window : string, tuple, number, function, or np.ndarray [shape=(n_fft,)]
+        - A window specification (string, tuple, number); see `scipy.signal.get_window`
+        - A window function, such as `scipy.signal.windows.hann`
+        - A vector or array of length `n_fft`
+        Defaults to a raised cosine window (`'hann'`), which is adequate for most applications in audio signal processing.
+
+    Returns
+    -------
+    D : np.ndarray [shape=(1 + n_fft/2, t), dtype=complex]
+        STFT of `y`.
+    """
+    if hop_length is None:
+        hop_length = n_fft // 4
+
+    # Generate the window function
+    window_func = np.hanning(n_fft) if window == 'hann' else window
+
+    # Initialize the STFT matrix
+    D = np.zeros((n_fft // 2 + 1, len(y) // hop_length), dtype=np.complex64)
+
+    # Apply the window function and compute the STFT for each frame
+    for t in range(D.shape[1]):
+        start = t * hop_length
+        end = start + n_fft
+        frame = y[start:end]
+        frame = np.pad(frame, (0, n_fft - len(frame)), mode='constant')
+        D[:, t] = np.fft.rfft(frame * window_func)
+
+    return D
+
+
+def alt_spectral_centroid(D, sr=44100, n_fft=2048, hop_length=512):
+    # Generate the frequency bins
+    n_fft = 2048  # Assuming this is the window size used in the STFT
+    freqs = np.linspace(0, sr / 2, n_fft // 2 + 1)
+    freqs = np.fft.rfftfreq(n=n_fft, d=1.0/sr)
+
+    # Calculate the spectral centroid for each frame
+    spectral_centroid = np.sum(freqs[:, np.newaxis] * np.abs(D), axis=0) / np.sum(np.abs(D), axis=0)
+    spectral_centroid[np.isnan(spectral_centroid)] = 0
+
+    return spectral_centroid
+
+def alt_spectral_bandwidth(D, sr=44100, n_fft = 2048):
+    # Compute the power spectrum
+    power_spectrum = np.abs(D) ** 2
+
+    freq = np.fft.rfftfreq(n=n_fft,d=1.0/sr)
+
+    centroid = alt_spectral_centroid(D)
+
+    # power_spectrum = librosa.util.normalize(power_spectrum, norm=1, axis=-2)
+    power_spectrum = norm(power_spectrum)
+
+    deviation = np.abs(freq[:, np.newaxis] - centroid)
+    spectral_bandwidth = np.sum(power_spectrum * deviation ** 2, axis=-2, keepdims=True)**(1.0/2)
+    return spectral_bandwidth.astype(float)
+
+
+def alt_spectral_contrast(D, sr=44100, n_fft = 2048, fmin: float = 200.0,
+    n_bands: int = 6,
+    quantile: float = 0.02,):
+
+    # Compute the STFT
+    S = np.abs(D)
+
+    freq = np.fft.rfftfreq(n=n_fft,d=1.0/sr)
+
+    octa = np.zeros(n_bands + 2)
+    octa[1:] = fmin * (2.0 ** np.arange(0, n_bands + 1))
+
+    # shape of valleys and peaks based on spectrogram
+    shape = list(S.shape)
+    shape[-2] = n_bands + 1
+    valley = np.zeros(shape)
+    peak = np.zeros_like(valley)
+
+    for k, (f_low, f_high) in enumerate(zip(octa[:-1], octa[1:])):
+        current_band = np.logical_and(freq >= f_low, freq <= f_high)
+
+        idx = np.flatnonzero(current_band)
+
+        if k > 0:
+            current_band[idx[0] - 1] = True
+
+        if k == n_bands:
+            current_band[idx[-1] + 1:] = True
+
+        sub_band = S[..., current_band, :]
+
+        if k < n_bands:
+            sub_band = sub_band[..., :-1, :]
+
+        # Always take at least one bin from each side
+        idx = np.rint(quantile * np.sum(current_band))
+        idx = int(np.maximum(idx, 1))
+
+        sortedr = np.sort(sub_band, axis=-2)
+
+        valley[..., k, :] = np.mean(sortedr[..., :idx, :], axis=-2)
+        peak[..., k, :] = np.mean(sortedr[..., -idx:, :], axis=-2)
+
+    contrast: np.ndarray
+    contrast = power_to_db(peak) - power_to_db(valley)
+    return contrast
+
+
+def alt_spectral_rolloff(D, sr=44100, n_fft = 2048, roll_percent=0.85):
+    # Compute the STFT
+    S = np.abs(D)
+
+    freq = np.fft.rfftfreq(n=n_fft,d=1.0/sr)
+
+    if freq.ndim == 1:
+        freq = expand_to(freq, ndim=S.ndim, axes=-2)
+
+    total_energy = np.cumsum(S, axis=-2)
+    # (channels,freq,frames)
+
+    threshold = roll_percent * total_energy[..., -1, :]
+
+    # reshape threshold for broadcasting
+    threshold = np.expand_dims(threshold, axis=-2)
+
+    ind = np.where(total_energy < threshold, np.nan, 1)
+
+    rolloff = np.nanmin(ind * freq, axis=-2, keepdims=True)
+    return rolloff
+
+
+def alt_create_feature(path, mode=0):
+    trimmed_audio, sr = librosa.load(path, sr=44100)
+
+    _stft = stft(trimmed_audio)
+
+    # Calculate spectral centroid
+    spectral_centroid = alt_spectral_centroid(_stft)
+
+    # Calculate spectral bandwidth
+    spectral_bandwidth = alt_spectral_bandwidth(_stft)[0]
+
+    # Calculate spectral contrast
+    spectral_contrast = alt_spectral_contrast(_stft)[0]
+
+    # Calculate spectral rolloff
+    spectral_rolloff = alt_spectral_rolloff(_stft)[0]
+
+    # Create the feature vector
+    f_dtype = [('centroid', 'f4', spectral_centroid.shape),
+               ('spectral_bandwidth', 'f4', spectral_bandwidth.shape),
+               ('spectral_contrast', 'f4', spectral_contrast.shape),
+               ('spectral_rolloff', 'f4', spectral_rolloff.shape),
+               ]
+
+    feature_vector = np.empty(1, dtype=f_dtype)
+
+    feature_vector['centroid'] = spectral_centroid
+    feature_vector['spectral_bandwidth'] = spectral_bandwidth
+    feature_vector['spectral_contrast'] = spectral_contrast
+    feature_vector['spectral_rolloff'] = spectral_rolloff
+
+    if mode == 0:
+        import os
+        filename, ext = os.path.splitext(os.path.basename(path))
+        np.save(os.path.normpath('alt_features/' + filename + '.npy'), feature_vector)
+    else:
+        return feature_vector
 
 
 def calculate_similarity_between_feats(feat1, feat2):

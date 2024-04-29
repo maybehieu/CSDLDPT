@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import os
 import shutil
 import time
+from typing import Optional
+from tqdm import tqdm
 
 
 def read_audio_from_path(_path=r""):
@@ -17,6 +19,104 @@ def read_audio_from_path(_path=r""):
     except:
         print(f"Error loading path {_path}")
     return None
+
+
+def norm(
+        S: np.ndarray,
+        *,
+        norm: Optional[float] = 1,
+        axis: Optional[int] = 0,
+        threshold: Optional[float] = None,
+        fill: Optional[bool] = None,
+) -> np.ndarray:
+    """Normalize an array along a chosen axis."""
+
+    # Avoid div-by-zero
+    if threshold is None:
+        threshold = np.finfo(S.dtype).tiny
+
+    # All norms only depend on magnitude, let's do that first
+    mag = np.abs(S).astype(float)
+
+    # For max/min norms, filling with 1 works
+    fill_norm = 1
+
+    if norm is None:
+        return S
+    elif norm == np.inf:
+        length = np.max(mag, axis=axis, keepdims=True)
+    elif norm == -np.inf:
+        length = np.min(mag, axis=axis, keepdims=True)
+    elif norm == 0:
+        length = np.sum(mag > 0, axis=axis, keepdims=True, dtype=mag.dtype)
+    elif np.issubdtype(type(norm), np.number) and norm > 0:
+        length = np.sum(mag ** norm, axis=axis, keepdims=True) ** (1.0 / norm)
+        if axis is None:
+            fill_norm = mag.size ** (-1.0 / norm)
+        else:
+            fill_norm = mag.shape[axis] ** (-1.0 / norm)
+
+    # indices where norm is below the threshold
+    small_idx = length < threshold
+
+    Snorm = np.empty_like(S)
+    if fill is None:
+        # Leave small indices un-normalized
+        length[small_idx] = 1.0
+        Snorm[:] = S / length
+    elif fill:
+        # If we have a non-zero fill value, we locate those entries by
+        # doing a nan-divide.
+        # If S was finite, then length is finite (except for small positions)
+        length[small_idx] = np.nan
+        Snorm[:] = S / length
+        Snorm[np.isnan(Snorm)] = fill_norm
+    else:
+        # Set small values to zero by doing an inf-divide.
+        # This is safe (by IEEE-754) as long as S is finite.
+        length[small_idx] = np.inf
+        Snorm[:] = S / length
+
+    return Snorm
+
+
+def power_to_db(S: np.ndarray, ref: Optional[float] = 1.0, amin: float = 1e-10, top_db: Optional[float] = 80.0) -> np.ndarray:
+    """Convert a power spectrogram (amplitude squared) to dB-scaled spectrogram."""
+    S = np.asarray(S)
+
+    if np.issubdtype(S.dtype, np.complexfloating):
+        magnitude = np.abs(S)
+    else:
+        magnitude = S
+
+    if callable(ref):
+        # User supplied a function to calculate reference power
+        ref_value = ref(magnitude)
+    else:
+        ref_value = np.abs(ref)
+
+    log_spec: np.ndarray = 10.0 * np.log10(np.maximum(amin, magnitude))
+    log_spec -= 10.0 * np.log10(np.maximum(amin, ref_value))
+
+    if top_db is not None:
+        log_spec = np.maximum(log_spec, log_spec.max() - top_db)
+
+    return log_spec
+
+
+def expand_to(x, ndim, axes):
+    # Force axes into a tuple
+    axes_tup = None
+    try:
+        axes_tup = tuple(axes)  # type: ignore
+    except TypeError:
+        axes_tup = tuple([axes])  # type: ignore
+
+    shape = [1] * ndim
+    for i, axi in enumerate(axes_tup):
+        shape[axi] = x.shape[i]
+
+    return x.reshape(shape)
 
 
 def summarize_audio_files(mother_direc):
@@ -209,7 +309,7 @@ def run_func_on_all_datasets(mother_dir, func, arg1):
         audio_files = [
             file for file in os.listdir(mother_dir) if file.endswith((".wav", ".aif"))
         ]
-        for audio_file in audio_files:
+        for audio_file in tqdm(audio_files):
             audio_path = os.path.normpath(os.path.join(mother_dir, audio_file))
             if arg1 is not None:
                 res.append((audio_path, func(audio_path, arg1)))
@@ -219,7 +319,7 @@ def run_func_on_all_datasets(mother_dir, func, arg1):
         audio_files = [
             file for file in os.listdir(sub) if file.endswith((".wav", ".aif"))
         ]
-        for audio_file in audio_files:
+        for audio_file in tqdm(audio_files):
             audio_path = os.path.normpath(os.path.join(sub, audio_file))
             if arg1 is not None:
                 res.append((audio_path, func(audio_path, arg1)))
