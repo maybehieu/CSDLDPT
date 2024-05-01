@@ -411,17 +411,17 @@ def alt_create_feature(path, mode=0):
 
     # Create the feature vector
     f_dtype = [('centroid', 'f4', spectral_centroid.shape),
-               ('spectral_bandwidth', 'f4', spectral_bandwidth.shape),
-               ('spectral_contrast', 'f4', spectral_contrast.shape),
-               ('spectral_rolloff', 'f4', spectral_rolloff.shape),
+               ('bandwidth', 'f4', spectral_bandwidth.shape),
+               ('contrast', 'f4', spectral_contrast.shape),
+               ('rolloff', 'f4', spectral_rolloff.shape),
                ]
 
     feature_vector = np.empty(1, dtype=f_dtype)
 
     feature_vector['centroid'] = spectral_centroid
-    feature_vector['spectral_bandwidth'] = spectral_bandwidth
-    feature_vector['spectral_contrast'] = spectral_contrast
-    feature_vector['spectral_rolloff'] = spectral_rolloff
+    feature_vector['bandwidth'] = spectral_bandwidth
+    feature_vector['contrast'] = spectral_contrast
+    feature_vector['rolloff'] = spectral_rolloff
 
     if mode == 0:
         import os

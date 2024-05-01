@@ -6,11 +6,12 @@ import shutil
 import time
 from typing import Optional
 from tqdm import tqdm
+import csv
 
 
 def read_audio_from_path(_path=r""):
     try:
-        y, sr = librosa.load(_path, sr=None)
+        y, sr = librosa.load(_path, sr=44100)
         # try:
         #     y, _ = librosa.effects.trim(y)
         # except:
@@ -469,3 +470,27 @@ def load_all_features(path, mode=0):
         return [np.load(path) for path in paths]
     else:
         return [(np.load(path), path) for path in paths]
+
+
+def build_file_structure(dir1, dir2, output_csv):
+    matching_files = []
+
+    for root, _, files in os.walk(dir1):
+        for file in files:
+            filename1, _ = os.path.splitext(file)
+            for root2, _, files2 in os.walk(dir2):
+                for file2 in files2:
+                    filename2, _ = os.path.splitext(file2)
+                    if filename1 == filename2:
+                        matching_files.append((os.path.normpath(os.path.join(root, file)), os.path.normpath(os.path.join(root2, file2))))
+                        break
+
+    # Write the matching file paths to a CSV file
+    with open(output_csv, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['feature', 'Audio File'])
+        writer.writerows(matching_files)
+
+
+if __name__ == "__main__":
+    build_file_structure('alt_features', 'datasets/Processed', 'file_structure.csv')
