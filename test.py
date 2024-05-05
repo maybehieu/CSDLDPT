@@ -81,8 +81,32 @@ def get_name(path):
     print(filename, ext)
 
 
+def test_basic_process(audio_path):
+    y, sr = read_audio_from_path(audio_path)
+
+    sample_windows = 1.0 * sr
+    hop_length = 0.5 * sr
+    sample_windows, hop_length = int(sample_windows), int(hop_length)
+    y = np.concatenate((y, np.zeros(hop_length)))
+    # traverse audio data
+    cur = 0
+    for i in range(0, len(y) - sample_windows + 1, hop_length):
+        window_y = y[i:i+sample_windows]
+        print(window_y, len(window_y))
+        cur = i + sample_windows
+    if cur < len(y):
+        window_y = y[cur:]
+        if len(window_y) < sample_windows:
+            window_y = np.concatenate((window_y, np.zeros(sample_windows - len(window_y))))
+        # skip calculating if array only contains 0
+        if np.any(window_y != 0):
+            print(window_y, len(window_y))
+    pass
+
+
 if __name__ == "__main__":
-    run_func_on_all_datasets('datasets/Processed', alt_create_feature, None)
+    # test_basic_process('datasets/Processed/Castanets/castanet2.ff.stereo.wav')
+    run_func_on_all_datasets('datasets/Processed_v2', create_feature_v2, None)
     # summarize_audio_files('datasets/Processed')
     # plot_spectral_contrast('datasets/Processed/Castanets/castanet2.ff.stereo.wav')
     # create_feature_file('datasets/Processed/Castanets/castanet2.ff.stereo.wav')

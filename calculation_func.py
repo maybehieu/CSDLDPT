@@ -294,6 +294,19 @@ def stft(y, n_fft=2048, hop_length=None, window='hann'):
 
 
 def alt_spectral_centroid(D, sr=44100, n_fft=2048, hop_length=512):
+    """
+    More precisely, the centroid at frame ``t`` is defined as [#]_::
+
+        centroid[t] = sum_k S[k, t] * freq[k] / (sum_j S[j, t])
+
+    where ``S`` is a magnitude spectrogram, and ``freq`` is the array of
+    frequencies (e.g., FFT frequencies in Hz) of the rows of ``S``.
+    :param D:
+    :param sr:
+    :param n_fft:
+    :param hop_length:
+    :return:
+    """
     # Generate the frequency bins
     n_fft = 2048  # Assuming this is the window size used in the STFT
     freqs = np.linspace(0, sr / 2, n_fft // 2 + 1)
@@ -427,6 +440,93 @@ def alt_create_feature(path, mode=0):
         import os
         filename, ext = os.path.splitext(os.path.basename(path))
         np.save(os.path.normpath('alt_features/' + filename + '.npy'), feature_vector)
+    else:
+        return feature_vector
+
+
+def create_feature_v2(path, mode=0):
+    y, sr = librosa.load(path, sr=44100)
+    sample_windows = 1.0 * sr
+    hop_length = 0.5 * sr
+    sample_windows, hop_length = int(sample_windows), int(hop_length)
+
+    # define feature arrays
+    all_centroid = []
+    all_bandwidth = []
+    all_contrast = []
+    all_rolloff = []
+    all_chroma = []
+
+    # traverse audio data
+    cur = 0
+    num_of_windows = 0
+    for i in range(0, len(y) - sample_windows + 1, hop_length):
+        window_y = y[i: i + sample_windows]
+        _stft = stft(window_y)
+        centroid = alt_spectral_centroid(_stft)
+        bandwidth = alt_spectral_bandwidth(_stft)[0]
+        contrast = alt_spectral_contrast(_stft)[0]
+        rolloff = alt_spectral_rolloff(_stft)[0]
+        # chroma = np.sum(window_y ** 2) / len(window_y)
+        chroma = librosa.feature.chroma_stft(y=window_y, sr=sr).flatten()
+        all_centroid.append(centroid)
+        all_bandwidth.append(bandwidth)
+        all_contrast.append(contrast)
+        all_rolloff.append(rolloff)
+        all_chroma.append(chroma)
+        cur = i + sample_windows
+        num_of_windows += 1
+    if cur < len(y):
+        window_y = y[cur:]
+        if len(window_y) < sample_windows:
+            window_y = np.concatenate(
+                (window_y, np.zeros(sample_windows - len(window_y)))
+            )
+        # skip calculating if array only contains 0
+        if np.any(window_y != 0):
+            _stft = stft(window_y)
+            centroid = alt_spectral_centroid(_stft)
+            bandwidth = alt_spectral_bandwidth(_stft)[0]
+            contrast = alt_spectral_contrast(_stft)[0]
+            rolloff = alt_spectral_rolloff(_stft)[0]
+            # chroma = np.sum(window_y ** 2) / len(window_y)
+            chroma = librosa.feature.chroma_stft(y=window_y, sr=sr).flatten()
+            all_centroid.append(centroid)
+            all_bandwidth.append(bandwidth)
+            all_contrast.append(contrast)
+            all_rolloff.append(rolloff)
+            all_chroma.append(chroma)
+            num_of_windows += 1
+
+    all_centroid = np.array(all_centroid, dtype="f4")
+    all_bandwidth = np.array(all_bandwidth, dtype="f4")
+    all_contrast = np.array(all_contrast, dtype="f4")
+    all_rolloff = np.array(all_rolloff, dtype="f4")
+    all_chroma = np.array(all_chroma, dtype="f4")
+
+    # Create the feature vector
+    f_dtype = [
+        ("feat_nums", "i4"),
+        ("chroma", "f4", all_chroma.shape),
+        ("centroid", "f4", all_centroid.shape),
+        ("bandwidth", "f4", all_bandwidth.shape),
+        ("contrast", "f4", all_contrast.shape),
+        ("rolloff", "f4", all_rolloff.shape),
+    ]
+
+    feature_vector = np.empty(1, dtype=f_dtype)
+
+    feature_vector["feat_nums"] = num_of_windows
+    feature_vector["chroma"] = all_chroma
+    feature_vector["centroid"] = all_centroid
+    feature_vector["bandwidth"] = all_bandwidth
+    feature_vector["contrast"] = all_contrast
+    feature_vector["rolloff"] = all_rolloff
+
+    if mode == 0:
+        import os
+        filename, ext = os.path.splitext(os.path.basename(path))
+        np.save(os.path.normpath('features_v2/' + filename + '.npy'), feature_vector)
     else:
         return feature_vector
 

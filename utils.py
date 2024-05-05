@@ -493,4 +493,4 @@ def build_file_structure(dir1, dir2, output_csv):
 
 
 if __name__ == "__main__":
-    build_file_structure('alt_features', 'datasets/Processed', 'file_structure.csv')
+    build_file_structure('features_v2', 'datasets/Processed_v2', 'file_structure_v2.csv')
