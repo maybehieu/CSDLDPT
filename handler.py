@@ -107,6 +107,7 @@ class AudioHandler:
         self.output_dir = "export/"
 
         self.current_file = ""
+        self.current_windowsz = 0
         self.current_filename = ""
         self.cache = None
 
@@ -126,6 +127,7 @@ class AudioHandler:
                 data = feat
                 slider = query
                 window_size = query["feat_nums"][0]
+            self.current_windowsz = window_size
 
             sims = []
             for hop in range(0, data["feat_nums"][0] - window_size + 1):
@@ -177,6 +179,7 @@ class AudioHandler:
         print(f"===================\nResult of {self.current_file}: ")
         rank = 1
         for file_path, score, time_index in res:
+            # note to self: redo timestamp calculation -> currently wrong
             print(f"Rank {rank}: {file_path}, similarity: {score}, segment: {float(time_index) * .5}-{float(time_index) * .5 + 1}s")
             rank += 1
         print("====================")
@@ -196,6 +199,7 @@ class AudioHandler:
             sample_windows = 1.0 * sr
             hop_length = 0.5 * sr
             sample_windows, hop_length = int(sample_windows), int(hop_length)
+            # note to self: redo timestamp calculation -> currently wrong
             result = y[hop_length * time_index:hop_length * time_index + sample_windows]
             sfile.write(self.output_dir + self.current_filename + f"/rank_{rank}.wav", result, sr, 'PCM_24')
             rank += 1
