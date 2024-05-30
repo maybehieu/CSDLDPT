@@ -23,12 +23,12 @@ def read_audio_from_path(_path=r""):
 
 
 def norm(
-        S: np.ndarray,
-        *,
-        norm: Optional[float] = 1,
-        axis: Optional[int] = 0,
-        threshold: Optional[float] = None,
-        fill: Optional[bool] = None,
+    S: np.ndarray,
+    *,
+    norm: Optional[float] = 1,
+    axis: Optional[int] = 0,
+    threshold: Optional[float] = None,
+    fill: Optional[bool] = None,
 ) -> np.ndarray:
     """Normalize an array along a chosen axis."""
 
@@ -51,7 +51,7 @@ def norm(
     elif norm == 0:
         length = np.sum(mag > 0, axis=axis, keepdims=True, dtype=mag.dtype)
     elif np.issubdtype(type(norm), np.number) and norm > 0:
-        length = np.sum(mag ** norm, axis=axis, keepdims=True) ** (1.0 / norm)
+        length = np.sum(mag**norm, axis=axis, keepdims=True) ** (1.0 / norm)
         if axis is None:
             fill_norm = mag.size ** (-1.0 / norm)
         else:
@@ -81,7 +81,12 @@ def norm(
     return Snorm
 
 
-def power_to_db(S: np.ndarray, ref: Optional[float] = 1.0, amin: float = 1e-10, top_db: Optional[float] = 80.0) -> np.ndarray:
+def power_to_db(
+    S: np.ndarray,
+    ref: Optional[float] = 1.0,
+    amin: float = 1e-10,
+    top_db: Optional[float] = 80.0,
+) -> np.ndarray:
     """Convert a power spectrogram (amplitude squared) to dB-scaled spectrogram."""
     S = np.asarray(S)
 
@@ -314,7 +319,8 @@ def run_func_on_all_datasets(mother_dir, func, arg1):
             audio_path = os.path.normpath(os.path.join(mother_dir, audio_file))
             if arg1 is not None:
                 res.append((audio_path, func(audio_path, arg1)))
-            else: res.append(func(audio_path))
+            else:
+                res.append(func(audio_path))
     for sub in subfolder:
         print(sub)
         audio_files = [
@@ -390,9 +396,7 @@ def create_feature(path, mode=0):
     stft = librosa.stft(trimmed_audio)
 
     # Calculate spectral centroid
-    spectral_centroid = librosa.feature.spectral_centroid(
-        y=trimmed_audio, sr=sr
-    )
+    spectral_centroid = librosa.feature.spectral_centroid(y=trimmed_audio, sr=sr)
 
     # # Calculate chromatogram
     chroma = librosa.feature.chroma_stft(y=trimmed_audio, sr=sr)
@@ -407,9 +411,7 @@ def create_feature(path, mode=0):
     melspectro = librosa.feature.melspectrogram(y=trimmed_audio, sr=sr)
 
     # Calculate spectral bandwidth
-    spectral_bandwidth = librosa.feature.spectral_bandwidth(
-        S=np.abs(stft), sr=sr
-    )
+    spectral_bandwidth = librosa.feature.spectral_bandwidth(S=np.abs(stft), sr=sr)
 
     # Calculate spectral contrast
     spectral_contrast = librosa.feature.spectral_contrast(S=np.abs(stft))
@@ -428,33 +430,35 @@ def create_feature(path, mode=0):
     #       spectral_bandwidth.shape,spectral_contrast.shape,spectral_flatness.shape,spectral_rolloff.shape,onset_env.shape)
 
     # Create the feature vector
-    f_dtype = [('centroid', 'f4', spectral_centroid.shape),
-               ('chroma', 'f4', chroma.shape),
-               ('power', 'f4', power.shape),
-               ('stft_spectro', 'f4', stftspectro.shape),
-               ('mel_spectro', 'f4', melspectro.shape),
-               ('spectral_bandwidth', 'f4', spectral_bandwidth.shape),
-               ('spectral_contrast', 'f4', spectral_contrast.shape),
-               ('spectral_flatness', 'f4', spectral_flatness.shape),
-               ('spectral_rolloff', 'f4', spectral_rolloff.shape),
-               ('onset_env', 'f4', onset_env.shape)]
+    f_dtype = [
+        ("centroid", "f4", spectral_centroid.shape),
+        ("chroma", "f4", chroma.shape),
+        ("power", "f4", power.shape),
+        ("stft_spectro", "f4", stftspectro.shape),
+        ("mel_spectro", "f4", melspectro.shape),
+        ("spectral_bandwidth", "f4", spectral_bandwidth.shape),
+        ("spectral_contrast", "f4", spectral_contrast.shape),
+        ("spectral_flatness", "f4", spectral_flatness.shape),
+        ("spectral_rolloff", "f4", spectral_rolloff.shape),
+        ("onset_env", "f4", onset_env.shape),
+    ]
 
     feature_vector = np.empty(1, dtype=f_dtype)
 
-    feature_vector['centroid'] = spectral_centroid
-    feature_vector['chroma'] = chroma
-    feature_vector['power'] = power
-    feature_vector['stft_spectro'] = stftspectro
-    feature_vector['mel_spectro'] = melspectro
-    feature_vector['spectral_bandwidth'] = spectral_bandwidth
-    feature_vector['spectral_contrast'] = spectral_contrast
-    feature_vector['spectral_flatness'] = spectral_flatness
-    feature_vector['spectral_rolloff'] = spectral_rolloff
-    feature_vector['onset_env'] = onset_env
+    feature_vector["centroid"] = spectral_centroid
+    feature_vector["chroma"] = chroma
+    feature_vector["power"] = power
+    feature_vector["stft_spectro"] = stftspectro
+    feature_vector["mel_spectro"] = melspectro
+    feature_vector["spectral_bandwidth"] = spectral_bandwidth
+    feature_vector["spectral_contrast"] = spectral_contrast
+    feature_vector["spectral_flatness"] = spectral_flatness
+    feature_vector["spectral_rolloff"] = spectral_rolloff
+    feature_vector["onset_env"] = onset_env
 
     if mode == 0:
         filename, ext = os.path.splitext(os.path.basename(path))
-        np.save(os.path.normpath('features/' + filename + '.npy'), feature_vector)
+        np.save(os.path.normpath("features/" + filename + ".npy"), feature_vector)
     else:
         return feature_vector
 
@@ -482,15 +486,26 @@ def build_file_structure(dir1, dir2, output_csv):
                 for file2 in files2:
                     filename2, _ = os.path.splitext(file2)
                     if filename1 == filename2:
-                        matching_files.append((os.path.normpath(os.path.join(root, file)), os.path.normpath(os.path.join(root2, file2))))
+                        matching_files.append(
+                            (
+                                os.path.normpath(os.path.join(root, file)),
+                                os.path.normpath(os.path.join(root2, file2)),
+                            )
+                        )
                         break
 
     # Write the matching file paths to a CSV file
-    with open(output_csv, 'w', newline='') as csvfile:
+    with open(output_csv, "w", newline="") as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['feature', 'Audio File'])
+        writer.writerow(["feature", "Audio File"])
         writer.writerows(matching_files)
 
 
+def rename_file_name(file_path):
+    os.rename(file_path, file_path.replace(" (mp3cut.net)", ""))
+
+
 if __name__ == "__main__":
-    build_file_structure('features_v2', 'datasets/Processed_v2', 'file_structure_v2.csv')
+    build_file_structure(
+        "features_v2", "datasets/Processed_v2", "file_structure_v2.csv"
+    )

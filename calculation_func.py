@@ -249,7 +249,7 @@ def calculate_onset_envelope(y, sr):
     return librosa.onset.onset_strength(y=y, sr=sr)
 
 
-def stft(y, n_fft=2048, hop_length=None, window='hann'):
+def stft(y, n_fft=2048, hop_length=None, window="hann"):
     """
     Compute the Short-Time Fourier Transform (STFT) of an audio signal.
 
@@ -277,7 +277,7 @@ def stft(y, n_fft=2048, hop_length=None, window='hann'):
         hop_length = n_fft // 4
 
     # Generate the window function
-    window_func = np.hanning(n_fft) if window == 'hann' else window
+    window_func = np.hanning(n_fft) if window == "hann" else window
 
     # Initialize the STFT matrix
     D = np.zeros((n_fft // 2 + 1, len(y) // hop_length), dtype=np.complex64)
@@ -287,7 +287,7 @@ def stft(y, n_fft=2048, hop_length=None, window='hann'):
         start = t * hop_length
         end = start + n_fft
         frame = y[start:end]
-        frame = np.pad(frame, (0, n_fft - len(frame)), mode='constant')
+        frame = np.pad(frame, (0, n_fft - len(frame)), mode="constant")
         D[:, t] = np.fft.rfft(frame * window_func)
 
     return D
@@ -310,19 +310,22 @@ def alt_spectral_centroid(D, sr=44100, n_fft=2048, hop_length=512):
     # Generate the frequency bins
     n_fft = 2048  # Assuming this is the window size used in the STFT
     freqs = np.linspace(0, sr / 2, n_fft // 2 + 1)
-    freqs = np.fft.rfftfreq(n=n_fft, d=1.0/sr)
+    freqs = np.fft.rfftfreq(n=n_fft, d=1.0 / sr)
 
     # Calculate the spectral centroid for each frame
-    spectral_centroid = np.sum(freqs[:, np.newaxis] * np.abs(D), axis=0) / np.sum(np.abs(D), axis=0)
+    spectral_centroid = np.sum(freqs[:, np.newaxis] * np.abs(D), axis=0) / np.sum(
+        np.abs(D), axis=0
+    )
     spectral_centroid[np.isnan(spectral_centroid)] = 0
 
     return spectral_centroid
 
-def alt_spectral_bandwidth(D, sr=44100, n_fft = 2048):
+
+def alt_spectral_bandwidth(D, sr=44100, n_fft=2048):
     # Compute the power spectrum
     power_spectrum = np.abs(D) ** 2
 
-    freq = np.fft.rfftfreq(n=n_fft,d=1.0/sr)
+    freq = np.fft.rfftfreq(n=n_fft, d=1.0 / sr)
 
     centroid = alt_spectral_centroid(D)
 
@@ -330,18 +333,25 @@ def alt_spectral_bandwidth(D, sr=44100, n_fft = 2048):
     power_spectrum = norm(power_spectrum)
 
     deviation = np.abs(freq[:, np.newaxis] - centroid)
-    spectral_bandwidth = np.sum(power_spectrum * deviation ** 2, axis=-2, keepdims=True)**(1.0/2)
+    spectral_bandwidth = np.sum(
+        power_spectrum * deviation**2, axis=-2, keepdims=True
+    ) ** (1.0 / 2)
     return spectral_bandwidth.astype(float)
 
 
-def alt_spectral_contrast(D, sr=44100, n_fft = 2048, fmin: float = 200.0,
+def alt_spectral_contrast(
+    D,
+    sr=44100,
+    n_fft=2048,
+    fmin: float = 200.0,
     n_bands: int = 6,
-    quantile: float = 0.02,):
+    quantile: float = 0.02,
+):
 
     # Compute the STFT
     S = np.abs(D)
 
-    freq = np.fft.rfftfreq(n=n_fft,d=1.0/sr)
+    freq = np.fft.rfftfreq(n=n_fft, d=1.0 / sr)
 
     octa = np.zeros(n_bands + 2)
     octa[1:] = fmin * (2.0 ** np.arange(0, n_bands + 1))
@@ -361,7 +371,7 @@ def alt_spectral_contrast(D, sr=44100, n_fft = 2048, fmin: float = 200.0,
             current_band[idx[0] - 1] = True
 
         if k == n_bands:
-            current_band[idx[-1] + 1:] = True
+            current_band[idx[-1] + 1 :] = True
 
         sub_band = S[..., current_band, :]
 
@@ -382,11 +392,11 @@ def alt_spectral_contrast(D, sr=44100, n_fft = 2048, fmin: float = 200.0,
     return contrast
 
 
-def alt_spectral_rolloff(D, sr=44100, n_fft = 2048, roll_percent=0.85):
+def alt_spectral_rolloff(D, sr=44100, n_fft=2048, roll_percent=0.85):
     # Compute the STFT
     S = np.abs(D)
 
-    freq = np.fft.rfftfreq(n=n_fft,d=1.0/sr)
+    freq = np.fft.rfftfreq(n=n_fft, d=1.0 / sr)
 
     if freq.ndim == 1:
         freq = expand_to(freq, ndim=S.ndim, axes=-2)
@@ -423,23 +433,25 @@ def alt_create_feature(path, mode=0):
     spectral_rolloff = alt_spectral_rolloff(_stft)[0]
 
     # Create the feature vector
-    f_dtype = [('centroid', 'f4', spectral_centroid.shape),
-               ('bandwidth', 'f4', spectral_bandwidth.shape),
-               ('contrast', 'f4', spectral_contrast.shape),
-               ('rolloff', 'f4', spectral_rolloff.shape),
-               ]
+    f_dtype = [
+        ("centroid", "f4", spectral_centroid.shape),
+        ("bandwidth", "f4", spectral_bandwidth.shape),
+        ("contrast", "f4", spectral_contrast.shape),
+        ("rolloff", "f4", spectral_rolloff.shape),
+    ]
 
     feature_vector = np.empty(1, dtype=f_dtype)
 
-    feature_vector['centroid'] = spectral_centroid
-    feature_vector['bandwidth'] = spectral_bandwidth
-    feature_vector['contrast'] = spectral_contrast
-    feature_vector['rolloff'] = spectral_rolloff
+    feature_vector["centroid"] = spectral_centroid
+    feature_vector["bandwidth"] = spectral_bandwidth
+    feature_vector["contrast"] = spectral_contrast
+    feature_vector["rolloff"] = spectral_rolloff
 
     if mode == 0:
         import os
+
         filename, ext = os.path.splitext(os.path.basename(path))
-        np.save(os.path.normpath('alt_features/' + filename + '.npy'), feature_vector)
+        np.save(os.path.normpath("alt_features/" + filename + ".npy"), feature_vector)
     else:
         return feature_vector
 
@@ -461,7 +473,7 @@ def create_feature_v2(path, mode=0):
     cur = 0
     num_of_windows = 0
     for i in range(0, len(y) - sample_windows + 1, hop_length):
-        window_y = y[i: i + sample_windows]
+        window_y = y[i : i + sample_windows]
         _stft = stft(window_y)
         centroid = alt_spectral_centroid(_stft)
         bandwidth = alt_spectral_bandwidth(_stft)[0]
@@ -525,10 +537,57 @@ def create_feature_v2(path, mode=0):
 
     if mode == 0:
         import os
+
+        rel_path = os.path.relpath(path, os.getcwd())
+        new_path = os.path.join("features_v3", rel_path)
+        new_dir = os.path.dirname(new_path)
         filename, ext = os.path.splitext(os.path.basename(path))
-        np.save(os.path.normpath('features_v2/' + filename + '.npy'), feature_vector)
+        os.makedirs(new_dir, exist_ok=True)
+        np.save(
+            os.path.normpath(os.path.join(new_dir, filename + ".npy")), feature_vector
+        )
     else:
         return feature_vector
+
+
+def create_center_feature(directory_path, mode=0):
+    import os
+
+    # read all npy files in the directory
+    files = [f for f in os.listdir(directory_path) if f.endswith(".npy")]
+    all_centroid = np.array()
+    all_bandwidth = np.array()
+    all_contrast = np.array()
+    all_rolloff = np.array()
+    all_chroma = np.array()
+    for file in files:
+        feature = np.load(os.path.join(directory_path, file), allow_pickle=True)
+        all_centroid += feature["centroid"][0]
+        all_bandwidth += feature["bandwidth"][0]
+        all_contrast += feature["contrast"][0]
+        all_rolloff += feature["rolloff"][0]
+        all_chroma += feature["chroma"][0]
+
+    all_centroid = np.array(all_centroid)
+    all_bandwidth = np.array(all_bandwidth)
+    all_contrast = np.array(all_contrast)
+    all_rolloff = np.array(all_rolloff)
+    all_chroma = np.array(all_chroma)
+
+    res = np.array()
+    res["centroid"] = np.mean(all_centroid, axis=0)
+    res["bandwidth"] = np.mean(all_bandwidth, axis=0)
+    res["contrast"] = np.mean(all_contrast, axis=0)
+    res["rolloff"] = np.mean(all_rolloff, axis=0)
+    res["chroma"] = np.mean(all_chroma, axis=0)
+
+    if mode == 0:
+        import os
+
+        filename = os.path.basename(directory_path)
+        np.save(os.path.normpath(os.path.join("features_v3", filename + ".npy")), res)
+    else:
+        return res
 
 
 def calculate_similarity_between_feats(feat1, feat2):
