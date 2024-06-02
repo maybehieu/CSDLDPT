@@ -14,7 +14,7 @@ utils.get_prober_name = get_prober_name
 
 def pad_audio(
     audio_path,
-    output_path="datasets/Processed_v2/",
+    output_path="datasets/Processed_v3/",
     target_length=3000,
     target_sr=44100,
 ):
@@ -56,5 +56,5 @@ def get_native_sr(audio_path):
 
 
 if __name__ == "__main__":
-    run_func_on_all_datasets(r"datasets\Processed_v3", pad_audio, None)
+    run_func_on_all_datasets(r"datasets/Processed_v3", pad_audio, None)
     # run_func_on_all_datasets('datasets/Storage/Ver1', get_native_sr, None)

@@ -468,12 +468,23 @@ def load_feature(path):
 
 
 def load_all_features(path, mode=0):
-    feature_files = [file for file in os.listdir(path) if file.endswith(".npy")]
-    paths = [os.path.join(path, file) for file in feature_files]
+    # feature_files = [file for file in os.listdir(path) if file.endswith(".npy")]
+    # paths = [os.path.join(path, file) for file in feature_files]
+    # if mode == 0:
+    #     return [np.load(path) for path in paths]
+    # else:
+    #     return [(np.load(path), path) for path in paths]
+
+    # # different version using os.walk
+    feature_files = []
+    for root, _, files in os.walk(path):
+        for file in files:
+            if file.endswith(".npy"):
+                feature_files.append(os.path.join(root, file))
     if mode == 0:
-        return [np.load(path) for path in paths]
+        return [np.load(path) for path in feature_files]
     else:
-        return [(np.load(path), path) for path in paths]
+        return [(np.load(path), path) for path in feature_files]
 
 
 def build_file_structure(dir1, dir2, output_csv):
@@ -507,5 +518,5 @@ def rename_file_name(file_path):
 
 if __name__ == "__main__":
     build_file_structure(
-        "features_v2", "datasets/Processed_v2", "file_structure_v2.csv"
+        "features_v3", "datasets/Processed_v3", "file_structure_v3.csv"
     )

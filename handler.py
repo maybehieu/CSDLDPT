@@ -100,11 +100,11 @@ def get_feature(y, sr):
 
 class AudioHandler:
     def __init__(self) -> None:
-        self.all_feats = load_all_features("features_v2", mode=1)
-        self.file_map = pd.read_csv("file_structure_v2.csv")
+        self.all_feats = load_all_features("features_v3", mode=1)
+        self.file_map = pd.read_csv("file_structure_v3.csv")
         self.topk = 3
         self.extract = True
-        self.output_dir = "export/"
+        self.output_dir = "export_v2/"
 
         self.current_file = ""
         self.current_windowsz = 0
@@ -135,24 +135,43 @@ class AudioHandler:
                 # eg: feat["centroid"] = [[data0], [data1], [...]...] -> feat["centroid"][0] = [data0]
                 # in which: data0: feature vector of spectral centroid with shape (1, n) or (k, n)
                 #           k: number of windows, n: number of elem in feature
-                # a = data["centroid"][0][hop:window_size + hop, :].reshape(1, -1)
-                # b = slider["centroid"][0].reshape(1, -1)
-                # print(np.array_equal(a, b))
-                # print(cosine_similarity(a, b))
-                # if a == 1:
-                #     print('-------')
-                #     print(np.mean(cosine_similarity(data["ave_pow"][0][hop:window_size + hop, :].reshape(1, -1), slider["ave_pow"][0].reshape(1, -1))),
-                #         np.mean(cosine_similarity(data["centroid"][0][hop:window_size + hop, :].reshape(1, -1), slider["centroid"][0].reshape(1, -1))),
-                #         np.mean(cosine_similarity(data["bandwidth"][0][hop:window_size + hop, :].reshape(1, -1), slider["bandwidth"][0].reshape(1, -1))),
-                #         # np.mean(cosine_similarity(data["contrast"][0][hop:window_size + hop, :].reshape(1, -1), slider["contrast"][0].reshape(1, -1))),
-                #         np.mean(cosine_similarity(data["rolloff"][0][hop:window_size + hop, :].reshape(1, -1), slider["rolloff"][0].reshape(1, -1))))
-                sims.append([
-                    np.mean(cosine_similarity(data["chroma"][0][hop:window_size + hop, :].reshape(1, -1), slider["chroma"][0].reshape(1, -1))),
-                    np.mean(cosine_similarity(data["centroid"][0][hop:window_size + hop, :].reshape(1, -1), slider["centroid"][0].reshape(1, -1))),
-                    np.mean(cosine_similarity(data["bandwidth"][0][hop:window_size + hop, :].reshape(1, -1), slider["bandwidth"][0].reshape(1, -1))),
-                    # np.mean(cosine_similarity(data["contrast"][0][hop:window_size + hop, :].reshape(1, -1), slider["contrast"][0].reshape(1, -1))),
-                    np.mean(cosine_similarity(data["rolloff"][0][hop:window_size + hop, :].reshape(1, -1), slider["rolloff"][0].reshape(1, -1))),
-                ])
+               sims.append(
+                    [
+                        np.mean(
+                            cosine_similarity(
+                                data["chroma"][0][hop : window_size + hop, :].reshape(
+                                    1, -1
+                                ),
+                                slider["chroma"][0].reshape(1, -1),
+                            )
+                        ),
+                        np.mean(
+                            cosine_similarity(
+                                data["centroid"][0][hop : window_size + hop, :].reshape(
+                                    1, -1
+                                ),
+                                slider["centroid"][0].reshape(1, -1),
+                            )
+                        ),
+                        np.mean(
+                            cosine_similarity(
+                                data["bandwidth"][0][
+                                    hop : window_size + hop, :
+                                ].reshape(1, -1),
+                                slider["bandwidth"][0].reshape(1, -1),
+                            )
+                        ),
+                        # np.mean(cosine_similarity(data["contrast"][0][hop:window_size + hop, :].reshape(1, -1), slider["contrast"][0].reshape(1, -1))),
+                        np.mean(
+                            cosine_similarity(
+                                data["rolloff"][0][hop : window_size + hop, :].reshape(
+                                    1, -1
+                                ),
+                                slider["rolloff"][0].reshape(1, -1),
+                            )
+                        ),
+                    ]
+                )
             # find max similarity and its timestamp
             sims = np.array(sims)
             time_index = np.argmax(np.mean(sims, axis=1))
@@ -180,13 +199,19 @@ class AudioHandler:
         rank = 1
         for file_path, score, time_index in res:
             # note to self: redo timestamp calculation -> currently wrong
-            print(f"Rank {rank}: {file_path}, similarity: {score}, segment: {float(time_index) * .5}-{float(time_index) * .5 + 1}s")
+            print(
+                f"Rank {rank}: {file_path}, similarity: {score}, segment: {float(time_index) * .5}-{float(time_index) * .5 + \
+                        self.current_windowsz - (self.current_windowsz - 1) * 0.5}s"
+            )
             rank += 1
         print("====================")
 
     def export_to_file(self):
         np.set_printoptions(suppress=True)
-        with open(os.path.join('export', os.path.basename(self.current_file) + '_v1.5.txt'), 'a') as f:
+        with open(
+            os.path.join("export", os.path.basename(self.current_file) + "_v1.5.txt"),
+            "a",
+        ) as f:
             print("feat", self.cache[:5], file=f)
             print("", file=f)
 
@@ -199,11 +224,18 @@ class AudioHandler:
             sample_windows = 1.0 * sr
             hop_length = 0.5 * sr
             sample_windows, hop_length = int(sample_windows), int(hop_length)
-            # note to self: redo timestamp calculation -> currently wrong
-            result = y[hop_length * time_index:hop_length * time_index + sample_windows]
-            sfile.write(self.output_dir + self.current_filename + f"/rank_{rank}.wav", result, sr, 'PCM_24')
+            result = y[
+                hop_length * time_index : hop_length * time_index
+                + self.current_windowsz * sample_windows
+                - (self.current_windowsz - 1) * hop_length
+            ]
+            sfile.write(
+                self.output_dir + self.current_filename + f"/rank_{rank}.wav",
+                result,
+                sr,
+                "PCM_24",
+            )
             rank += 1
-
 
     def query(self, filepath):
         self.current_file = os.path.basename(filepath)
@@ -222,7 +254,8 @@ class AudioHandler:
         if self.extract:
             try:
                 self.extract_result_audio(res)
-            except: print("Failed to save query result")
+            except:
+                print("Failed to save query result")
 
 
 if __name__ == "__main__":
