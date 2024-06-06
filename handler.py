@@ -20,13 +20,13 @@ import soundfile as sfile
 
 def cal_feature(y, sr):
     _stft = stft(y)
-    # chroma = np.sum(y ** 2) / len(y)
+    power = np.sum(y ** 2) / len(y)
     chroma = librosa.feature.chroma_stft(y=y, sr=sr).flatten()
     centroid = alt_spectral_centroid(_stft)
     bandwidth = alt_spectral_bandwidth(_stft)[0]
     contrast = alt_spectral_contrast(_stft)[0]
     rolloff = alt_spectral_rolloff(_stft)[0]
-    return chroma, centroid, bandwidth, contrast, rolloff
+    return power, chroma, centroid, bandwidth, contrast, rolloff
 
 
 def get_feature(y, sr):
@@ -35,6 +35,7 @@ def get_feature(y, sr):
     sample_windows, hop_length = int(sample_windows), int(hop_length)
 
     # define feature arrays
+    all_power = []
     all_chroma = []
     all_centroid = []
     all_bandwidth = []
@@ -46,7 +47,8 @@ def get_feature(y, sr):
     num_of_windows = 0
     for i in range(0, len(y) - sample_windows + 1, hop_length):
         window_y = y[i : i + sample_windows]
-        chroma, cent, band, cont, roll = cal_feature(window_y, sr)
+        power, chroma, cent, band, cont, roll = cal_feature(window_y, sr)
+        all_power.append(power)
         all_chroma.append(chroma)
         all_centroid.append(cent)
         all_bandwidth.append(band)
@@ -63,7 +65,8 @@ def get_feature(y, sr):
             )
         # skip calculating if array only contains 0
         if np.any(window_y != 0):
-            chroma, cent, band, cont, roll = cal_feature(window_y, sr)
+            power, chroma, cent, band, cont, roll = cal_feature(window_y, sr)
+            all_power.append(power)
             all_chroma.append(chroma)
             all_centroid.append(cent)
             all_bandwidth.append(band)
@@ -71,6 +74,7 @@ def get_feature(y, sr):
             all_rolloff.append(roll)
             num_of_windows += 1
 
+    all_power = np.array(all_power, dtype="f4")
     all_chroma = np.array(all_chroma, dtype="f4")
     all_centroid = np.array(all_centroid, dtype="f4")
     all_bandwidth = np.array(all_bandwidth, dtype="f4")
@@ -80,20 +84,22 @@ def get_feature(y, sr):
     # Create the feature vector
     f_dtype = [
         ("feat_nums", "i4"),
-        ("chroma", "f4", all_chroma.shape),
+        ("power", "f4", all_power.shape),
+        # ("chroma", "f4", all_chroma.shape),
         ("centroid", "f4", all_centroid.shape),
         ("bandwidth", "f4", all_bandwidth.shape),
-        ("contrast", "f4", all_contrast.shape),
+        # ("contrast", "f4", all_contrast.shape),
         ("rolloff", "f4", all_rolloff.shape),
     ]
 
     feature_vector = np.empty(1, dtype=f_dtype)
 
     feature_vector["feat_nums"] = num_of_windows
-    feature_vector["chroma"] = all_chroma
+    feature_vector["power"] = all_power
+    # feature_vector["chroma"] = all_chroma
     feature_vector["centroid"] = all_centroid
     feature_vector["bandwidth"] = all_bandwidth
-    feature_vector["contrast"] = all_contrast
+    # feature_vector["contrast"] = all_contrast
     feature_vector["rolloff"] = all_rolloff
     return feature_vector
 
@@ -139,12 +145,20 @@ class AudioHandler:
                     [
                         np.mean(
                             cosine_similarity(
-                                data["chroma"][0][hop : window_size + hop, :].reshape(
+                                data["power"][0][hop: window_size + hop, :].reshape(
                                     1, -1
                                 ),
-                                slider["chroma"][0].reshape(1, -1),
+                                slider["power"][0].reshape(1, -1),
                             )
                         ),
+                        # np.mean(
+                        #     cosine_similarity(
+                        #         data["chroma"][0][hop : window_size + hop, :].reshape(
+                        #             1, -1
+                        #         ),
+                        #         slider["chroma"][0].reshape(1, -1),
+                        #     )
+                        # ),
                         np.mean(
                             cosine_similarity(
                                 data["centroid"][0][hop : window_size + hop, :].reshape(

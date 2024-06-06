@@ -463,6 +463,7 @@ def create_feature_v2(path, mode=0):
     sample_windows, hop_length = int(sample_windows), int(hop_length)
 
     # define feature arrays
+    all_power = []
     all_centroid = []
     all_bandwidth = []
     all_contrast = []
@@ -475,12 +476,13 @@ def create_feature_v2(path, mode=0):
     for i in range(0, len(y) - sample_windows + 1, hop_length):
         window_y = y[i : i + sample_windows]
         _stft = stft(window_y)
+        power = np.sum(window_y ** 2) / len(window_y)
         centroid = alt_spectral_centroid(_stft)
         bandwidth = alt_spectral_bandwidth(_stft)[0]
         contrast = alt_spectral_contrast(_stft)[0]
         rolloff = alt_spectral_rolloff(_stft)[0]
-        # chroma = np.sum(window_y ** 2) / len(window_y)
         chroma = librosa.feature.chroma_stft(y=window_y, sr=sr).flatten()
+        all_power.append(power)
         all_centroid.append(centroid)
         all_bandwidth.append(bandwidth)
         all_contrast.append(contrast)
@@ -497,12 +499,13 @@ def create_feature_v2(path, mode=0):
         # skip calculating if array only contains 0
         if np.any(window_y != 0):
             _stft = stft(window_y)
+            power = np.sum(window_y ** 2) / len(window_y)
             centroid = alt_spectral_centroid(_stft)
             bandwidth = alt_spectral_bandwidth(_stft)[0]
             contrast = alt_spectral_contrast(_stft)[0]
             rolloff = alt_spectral_rolloff(_stft)[0]
-            # chroma = np.sum(window_y ** 2) / len(window_y)
             chroma = librosa.feature.chroma_stft(y=window_y, sr=sr).flatten()
+            all_power.append(power)
             all_centroid.append(centroid)
             all_bandwidth.append(bandwidth)
             all_contrast.append(contrast)
@@ -510,6 +513,7 @@ def create_feature_v2(path, mode=0):
             all_chroma.append(chroma)
             num_of_windows += 1
 
+    all_power = np.array(all_power, dtype="f4")
     all_centroid = np.array(all_centroid, dtype="f4")
     all_bandwidth = np.array(all_bandwidth, dtype="f4")
     all_contrast = np.array(all_contrast, dtype="f4")
@@ -519,20 +523,22 @@ def create_feature_v2(path, mode=0):
     # Create the feature vector
     f_dtype = [
         ("feat_nums", "i4"),
-        ("chroma", "f4", all_chroma.shape),
+        ("power", "f4", all_power.shape),
+        # ("chroma", "f4", all_chroma.shape),
         ("centroid", "f4", all_centroid.shape),
         ("bandwidth", "f4", all_bandwidth.shape),
-        ("contrast", "f4", all_contrast.shape),
+        # ("contrast", "f4", all_contrast.shape),
         ("rolloff", "f4", all_rolloff.shape),
     ]
 
     feature_vector = np.empty(1, dtype=f_dtype)
 
     feature_vector["feat_nums"] = num_of_windows
-    feature_vector["chroma"] = all_chroma
+    feature_vector["power"] = all_power
+    # feature_vector["chroma"] = all_chroma
     feature_vector["centroid"] = all_centroid
     feature_vector["bandwidth"] = all_bandwidth
-    feature_vector["contrast"] = all_contrast
+    # feature_vector["contrast"] = all_contrast
     feature_vector["rolloff"] = all_rolloff
 
     if mode == 0:

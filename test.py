@@ -109,6 +109,7 @@ def test_basic_process(audio_path):
 if __name__ == "__main__":
     # test_basic_process('datasets/Processed/Castanets/castanet2.ff.stereo.wav')
     run_func_on_all_datasets("datasets/Processed_v3", create_feature_v2, None)
+    # run_func_on_all_datasets("datasets/Processed_v3", rename_file_name, None)
     # summarize_audio_files('datasets/Processed')
     # plot_spectral_contrast('datasets/Processed/Castanets/castanet2.ff.stereo.wav')
     # create_feature_file('datasets/Processed/Castanets/castanet2.ff.stereo.wav')

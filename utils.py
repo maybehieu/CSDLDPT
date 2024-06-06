@@ -513,7 +513,8 @@ def build_file_structure(dir1, dir2, output_csv):
 
 
 def rename_file_name(file_path):
-    os.rename(file_path, file_path.replace(" (mp3cut.net)", ""))
+    os.rename(file_path, file_path.replace("(mp3cut.net)", ""))
+    os.rename(file_path, file_path.replace(" ", ""))
 
 
 if __name__ == "__main__":
