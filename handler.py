@@ -9,6 +9,7 @@ from calculation_func import (
     alt_spectral_bandwidth,
     alt_spectral_centroid,
     alt_create_feature,
+    create_feature_v2
 )
 from utils import load_all_features, read_audio_from_path
 from sklearn.metrics.pairwise import cosine_similarity
@@ -145,9 +146,7 @@ class AudioHandler:
                     [
                         np.mean(
                             cosine_similarity(
-                                data["power"][0][hop: window_size + hop, :].reshape(
-                                    1, -1
-                                ),
+                                data["power"][0][hop: window_size + hop].reshape(1, -1),
                                 slider["power"][0].reshape(1, -1),
                             )
                         ),
@@ -223,8 +222,8 @@ class AudioHandler:
     def export_to_file(self):
         np.set_printoptions(suppress=True)
         with open(
-            os.path.join("export", os.path.basename(self.current_file) + "_v1.5.txt"),
-            "a",
+            os.path.join("export_v2", os.path.basename(self.current_file) + "_v1.5.txt"),
+            "w",
         ) as f:
             print("feat", self.cache[:5], file=f)
             print("", file=f)
@@ -255,9 +254,10 @@ class AudioHandler:
         self.current_file = os.path.basename(filepath)
         filename, ext = os.path.splitext(self.current_file)
         self.current_filename = filename
-        y, sr = read_audio_from_path(filepath)
-        # feature vector extraction
-        feat = get_feature(y, sr)
+        # y, sr = read_audio_from_path(filepath)
+        # # feature vector extraction
+        # feat = get_feature(y, sr)
+        feat = create_feature_v2(filepath, mode=1)
         # find most similar
         sims = self.get_sims(feat)
         # get actual file accordingly
