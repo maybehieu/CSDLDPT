@@ -517,7 +517,20 @@ def rename_file_name(file_path):
     os.rename(file_path, file_path.replace(" ", ""))
 
 
+def rename_all_files(path):
+    # rename each file according to its folder name, with a number appended
+    for root, _, files in os.walk(path):
+        for i, file in enumerate(files):
+            os.rename(
+                os.path.normpath(os.path.join(root, file)),
+                os.path.normpath(
+                    os.path.join(root, f"{os.path.basename(root)}_{i}.wav")
+                ),
+            )
+
+
 if __name__ == "__main__":
     build_file_structure(
         "features_v3", "datasets/Processed_v3", "file_structure_v3.csv"
     )
+    # rename_all_files("datasets/Processed_v3")

@@ -1,6 +1,7 @@
 import librosa
 import numpy as np
 import sklearn.metrics.pairwise
+np.seterr(divide='ignore', invalid='ignore')
 
 
 from utils import read_audio_from_path, norm, power_to_db, expand_to
