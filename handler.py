@@ -9,7 +9,7 @@ from calculation_func import (
     alt_spectral_bandwidth,
     alt_spectral_centroid,
     alt_create_feature,
-    create_feature_v2
+    create_feature_v2,
 )
 from utils import load_all_features, read_audio_from_path
 from sklearn.metrics.pairwise import cosine_similarity
@@ -21,7 +21,7 @@ import soundfile as sfile
 
 def cal_feature(y, sr):
     _stft = stft(y)
-    power = np.sum(y ** 2) / len(y)
+    power = np.sum(y**2) / len(y)
     chroma = librosa.feature.chroma_stft(y=y, sr=sr).flatten()
     centroid = alt_spectral_centroid(_stft)
     bandwidth = alt_spectral_bandwidth(_stft)[0]
@@ -142,11 +142,13 @@ class AudioHandler:
                 # eg: feat["centroid"] = [[data0], [data1], [...]...] -> feat["centroid"][0] = [data0]
                 # in which: data0: feature vector of spectral centroid with shape (1, n) or (k, n)
                 #           k: number of windows, n: number of elem in feature
-               sims.append(
+                sims.append(
                     [
                         np.mean(
                             cosine_similarity(
-                                data["power"][0][hop: window_size + hop].reshape(1, -1),
+                                data["power"][0][hop : window_size + hop].reshape(
+                                    1, -1
+                                ),
                                 slider["power"][0].reshape(1, -1),
                             )
                         ),
@@ -220,9 +222,14 @@ class AudioHandler:
         print("====================")
 
     def export_to_file(self):
+        if not os.path.exists(self.output_dir + self.current_filename):
+            os.makedirs(self.output_dir + self.current_filename)
         np.set_printoptions(suppress=True)
         with open(
-            os.path.join("export_v2", os.path.basename(self.current_file) + "_v1.5.txt"),
+            os.path.join(
+                f"export_v2/{self.current_filename}",
+                os.path.splitext(os.path.basename(self.current_file))[0] + "_v1.5.txt",
+            ),
             "w",
         ) as f:
             print("feat", self.cache[:5], file=f)
