@@ -309,7 +309,7 @@ def alt_spectral_centroid(D, sr=44100, n_fft=2048, hop_length=512):
     :return:
     """
     # Generate the frequency bins
-    n_fft = 2048  # Assuming this is the window size used in the STFT
+    n_fft = 2048
     freqs = np.linspace(0, sr / 2, n_fft // 2 + 1)
     freqs = np.fft.rfftfreq(n=n_fft, d=1.0 / sr)
 
@@ -323,6 +323,16 @@ def alt_spectral_centroid(D, sr=44100, n_fft=2048, hop_length=512):
 
 
 def alt_spectral_bandwidth(D, sr=44100, n_fft=2048):
+    """Compute p'th-order spectral bandwidth.
+
+           The spectral bandwidth [#]_ at frame ``t`` is computed by::
+
+            (sum_k S[k, t] * (freq[k, t] - centroid[t])**p)**(1/p)
+
+        .. [#] Klapuri, A., & Davy, M. (Eds.). (2007). Signal processing
+            methods for music transcription, chapter 5.
+            Springer Science & Business Media.
+    """
     # Compute the power spectrum
     power_spectrum = np.abs(D) ** 2
 
@@ -399,19 +409,24 @@ def alt_spectral_rolloff(D, sr=44100, n_fft=2048, roll_percent=0.85):
 
     freq = np.fft.rfftfreq(n=n_fft, d=1.0 / sr)
 
+    # ensure freq match S dimension
     if freq.ndim == 1:
         freq = expand_to(freq, ndim=S.ndim, axes=-2)
 
+    # total energy of each freq bin
     total_energy = np.cumsum(S, axis=-2)
     # (channels,freq,frames)
 
+    # power threshold of each channel
     threshold = roll_percent * total_energy[..., -1, :]
 
     # reshape threshold for broadcasting
     threshold = np.expand_dims(threshold, axis=-2)
 
+    # id each points using nan and 1 values, indicating above or below power threshold
     ind = np.where(total_energy < threshold, np.nan, 1)
 
+    # find lowest frequency where power below threshold
     rolloff = np.nanmin(ind * freq, axis=-2, keepdims=True)
     return rolloff
 
